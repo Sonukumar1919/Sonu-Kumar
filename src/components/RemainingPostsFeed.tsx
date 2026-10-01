@@ -170,7 +170,7 @@ export const RemainingPostsFeed: React.FC<RemainingPostsFeedProps> = ({
                 </p>
 
                 {/* Photo (from gallery / url) */}
-                {post.photoUrl && (
+                {post.photoUrl && post.photoUrl.trim() !== '' && (
                   <div className="mt-3 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 max-h-[460px] flex items-center justify-center">
                     <img 
                       src={post.photoUrl} 

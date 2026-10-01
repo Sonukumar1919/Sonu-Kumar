@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Store, 
   PlusCircle, 
@@ -19,13 +19,17 @@ import {
   TrendingUp,
   Image as ImageIcon,
   Save,
-  X
+  X,
+  Sparkles,
+  RefreshCw,
+  Key
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
 import { Shop, Product, ShopPost } from '../types';
 import { SHOP_CATEGORIES } from '../data/constants';
 import { ImageUploadField } from './ImageUploadField';
+import { compressAndReadImageFile } from '../utils/imageUtils';
 
 interface ShopkeeperDashboardProps {
   onSelectShop: (shop: Shop) => void;
@@ -63,10 +67,27 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
   // Product form state
   const [prodName, setProdName] = useState('');
   const [prodCategory, setProdCategory] = useState(userShop.category);
+  const [prodCondition, setProdCondition] = useState<'new' | 'used' | 'rent'>('new');
   const [prodPrice, setProdPrice] = useState('');
   const [prodDiscountPrice, setProdDiscountPrice] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodPhoto, setProdPhoto] = useState('https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80');
+  const [prodGallery, setProdGallery] = useState<string[]>([]);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGalleryFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressAndReadImageFile(file, 800, 800, 0.75);
+      if (dataUrl) {
+        setProdGallery(prev => [...prev, dataUrl].slice(0, 4));
+      }
+    } catch (err) {
+      alert('फोटो लोड करने में समस्या आई।');
+    }
+    if (galleryFileInputRef.current) galleryFileInputRef.current.value = '';
+  };
   const [prodStock, setProdStock] = useState<'in_stock' | 'out_of_stock'>('in_stock');
   const [prodCode, setProdCode] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -96,14 +117,18 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
     e.preventDefault();
     if (!prodName || !prodPrice) return;
 
+    const finalGallery = [prodPhoto, ...prodGallery.filter(u => u && u !== prodPhoto)].slice(0, 5);
+
     if (editingProductId) {
       await updateProduct(editingProductId, {
         name: prodName,
         category: prodCategory,
+        condition: prodCondition,
         price: Number(prodPrice),
         discountPrice: prodDiscountPrice ? Number(prodDiscountPrice) : undefined,
         description: prodDesc,
         photoUrl: prodPhoto,
+        galleryUrls: finalGallery,
         stockStatus: prodStock,
         productCode: prodCode
       });
@@ -115,10 +140,12 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
         ownerUid: userShop.ownerUid,
         name: prodName,
         category: prodCategory,
+        condition: prodCondition,
         price: Number(prodPrice),
         discountPrice: prodDiscountPrice ? Number(prodDiscountPrice) : undefined,
         description: prodDesc,
         photoUrl: prodPhoto,
+        galleryUrls: finalGallery,
         stockStatus: prodStock,
         productCode: prodCode
       });
@@ -131,6 +158,8 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
     setProdDiscountPrice('');
     setProdDesc('');
     setProdCode('');
+    setProdGallery([]);
+    setProdCondition('new');
     setIsAddProductOpen(false);
   };
 
@@ -138,10 +167,12 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
     setEditingProductId(prod.id);
     setProdName(prod.name);
     setProdCategory(prod.category);
+    setProdCondition(prod.condition || 'new');
     setProdPrice(prod.price.toString());
     setProdDiscountPrice(prod.discountPrice ? prod.discountPrice.toString() : '');
     setProdDesc(prod.description);
     setProdPhoto(prod.photoUrl);
+    setProdGallery(prod.galleryUrls ? prod.galleryUrls.filter(u => u !== prod.photoUrl) : []);
     setProdStock(prod.stockStatus);
     setProdCode(prod.productCode || '');
     setIsAddProductOpen(true);
@@ -391,9 +422,24 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-semibold">
-                            {prod.category}
-                          </span>
+                          <div className="flex flex-col space-y-1">
+                            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-semibold w-max">
+                              {prod.category}
+                            </span>
+                            {prod.condition === 'used' ? (
+                              <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[10px] font-extrabold w-max">
+                                🔄 2nd Hand
+                              </span>
+                            ) : prod.condition === 'rent' ? (
+                              <span className="bg-purple-100 text-purple-900 px-2 py-0.5 rounded text-[10px] font-extrabold w-max">
+                                🔑 Rent
+                              </span>
+                            ) : (
+                              <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[10px] font-extrabold w-max">
+                                ✨ New
+                              </span>
+                            )}
+                          </div>
                           {prod.productCode && <div className="text-[11px] text-slate-400 mt-0.5">{prod.productCode}</div>}
                         </td>
                         <td className="px-4 py-3 font-semibold">
@@ -632,10 +678,66 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
                   type="text"
                   value={prodName}
                   onChange={(e) => setProdName(e.target.value)}
-                  placeholder="उदा. OnePlus Nord CE 4 5G"
+                  placeholder="उदा. OnePlus Nord CE 4 5G, पुरानी थ्रेशर, या लहँगा"
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm"
                 />
+              </div>
+
+              {/* Mandatory Product Condition Selector (नया / पुराना / किराये पर) */}
+              <div className="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-black text-slate-900 uppercase">
+                    सामान की स्थिति (Product Condition) *
+                  </label>
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                    अनिवार्य फ़ील्ड
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  चुनें कि यह सामान बिल्कुल नया है, पुराना/सेकंड-हैंड है या किराये पर दिया जाने वाला है:
+                </p>
+
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setProdCondition('new')}
+                    className={`p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-1 ${
+                      prodCondition === 'new'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-md font-extrabold ring-2 ring-emerald-400'
+                        : 'bg-white hover:bg-emerald-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <Sparkles size={16} />
+                    <span className="text-xs">✨ नया (New)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProdCondition('used')}
+                    className={`p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-1 ${
+                      prodCondition === 'used'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md font-extrabold ring-2 ring-amber-400'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <RefreshCw size={16} />
+                    <span className="text-xs">🔄 पुराना / 2nd Hand</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProdCondition('rent')}
+                    className={`p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-1 ${
+                      prodCondition === 'rent'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md font-extrabold ring-2 ring-purple-400'
+                        : 'bg-white hover:bg-purple-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <Key size={16} />
+                    <span className="text-xs">🔑 किराये पर (Rent)</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -689,10 +791,10 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
               </div>
 
               <ImageUploadField
-                label="प्रोडक्ट की फ़ोटो (Product Photo)"
+                label="मुख्य कवर फ़ोटो (Primary Cover Photo)"
                 value={prodPhoto}
                 onChange={setProdPhoto}
-                helpText="गैलरी या कैमरा से प्रोडक्ट की साफ़ फ़ोटो चुनें"
+                helpText="गैलरी या कैमरा से प्रोडक्ट की पहली मुख्य फ़ोटो चुनें"
                 presetSamples={[
                   { label: 'मोबाइल', url: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80' },
                   { label: 'हेडफ़ोन', url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80' },
@@ -700,6 +802,67 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
                   { label: 'मिठाई', url: 'https://images.unsplash.com/photo-1541832676-9b763b0239ab?auto=format&fit=crop&w=600&q=80' }
                 ]}
               />
+
+              {/* Multi-Photo Gallery Upload Section (Up to 5 Photos) */}
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <input
+                  ref={galleryFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleGalleryFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-800 uppercase">
+                    अतिरिक्त फ़ोटो (Multiple Photos - Up to 5 Photos)
+                  </label>
+                  <span className="text-[10px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded-full">
+                    {Math.min(5, 1 + prodGallery.length)} / 5 फ़ोटो चुनी गई हैं
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  ग्राहकों को प्रोडक्ट अलग-अलग कोणों से दिखाने के लिए फोन गैलरी या कैमरा से 4 से 5 फ़ोटो जोड़ें:
+                </p>
+
+                {/* Display thumbnail list of extra photos */}
+                <div className="grid grid-cols-5 gap-2 pt-1">
+                  {/* Main Cover Photo Thumbnail */}
+                  <div className="relative w-full h-16 rounded-xl overflow-hidden border-2 border-emerald-500 shadow-2xs group">
+                    <img src={prodPhoto} alt="Cover" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0 inset-x-0 bg-emerald-600 text-white text-[8px] font-black text-center py-0.5 uppercase">
+                      मुख्य
+                    </span>
+                  </div>
+
+                  {/* Additional Gallery Photos */}
+                  {prodGallery.map((url, idx) => (
+                    <div key={idx} className="relative w-full h-16 rounded-xl overflow-hidden border border-slate-300 group">
+                      <img src={url} alt={`Gallery ${idx + 2}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setProdGallery(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 bg-rose-600 text-white p-0.5 rounded-full hover:bg-rose-700 shadow-md cursor-pointer"
+                        title="हटाएं"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add Photo Button if < 4 extra photos */}
+                  {prodGallery.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() => galleryFileInputRef.current?.click()}
+                      className="h-16 rounded-xl border-2 border-dashed border-amber-400 hover:border-amber-600 bg-amber-50/50 hover:bg-amber-100/80 text-amber-800 flex flex-col items-center justify-center transition cursor-pointer"
+                    >
+                      <PlusCircle size={18} className="text-amber-600" />
+                      <span className="text-[9px] font-extrabold mt-0.5">+ फ़ोटो जोड़ें</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">विवरण (Description)</label>

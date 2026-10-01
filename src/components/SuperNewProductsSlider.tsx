@@ -9,10 +9,12 @@ import {
   Phone, 
   Store, 
   CheckCircle,
-  Tag
+  Tag,
+  Images
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Product, Shop } from '../types';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface SuperNewProductsSliderProps {
   onSelectShop: (shop: Shop) => void;
@@ -24,6 +26,7 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
   onOpenAuth 
 }) => {
   const { products, shops, toggleSaveProduct, isProductSaved, currentUser, systemSettings } = useApp();
+  const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
 
   // Active products sorted by newest first (Super New Products)
   const activeProducts = products
@@ -170,11 +173,16 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
               ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
               : 0;
 
+            const totalPhotoCount = (product.galleryUrls && product.galleryUrls.length > 0)
+              ? product.galleryUrls.length
+              : 1;
+
             return (
               <div 
                 key={product.id}
-                className="px-2 shrink-0"
+                className="px-2 shrink-0 cursor-pointer"
                 style={{ width: `${100 / itemsPerView}%` }}
+                onClick={() => setSelectedDetailProduct(product)}
               >
                 <div className="bg-white rounded-3xl border border-amber-200/80 p-3 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group hover:border-amber-400 relative overflow-hidden">
                   
@@ -182,11 +190,17 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
                   <div className="absolute top-5 left-5 z-10 flex items-center space-x-1.5">
                     <span className="bg-gradient-to-r from-red-600 to-orange-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-md uppercase tracking-wider flex items-center space-x-1">
                       <Sparkles size={10} />
-                      <span>NEW ARRIVAL</span>
+                      <span>NEW</span>
                     </span>
                     {discountPercent > 0 && (
                       <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-md">
                         {discountPercent}% OFF
+                      </span>
+                    )}
+                    {totalPhotoCount > 1 && (
+                      <span className="bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-md flex items-center space-x-1">
+                        <Images size={10} />
+                        <span>{totalPhotoCount} फ़ोटो</span>
                       </span>
                     )}
                   </div>
@@ -210,17 +224,32 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
                   {/* Product Image */}
                   <div className="relative h-44 sm:h-52 w-full rounded-2xl overflow-hidden bg-slate-100 mb-3">
                     <img
-                      src={product.photoUrl}
+                      src={product.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80'}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-108 transition duration-700"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                     
-                    {/* Category pill */}
-                    <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
-                      {product.category}
-                    </span>
+                    {/* Category & Condition pill */}
+                    <div className="absolute bottom-2 left-2 flex items-center space-x-1">
+                      {product.condition === 'used' ? (
+                        <span className="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
+                          🔄 2nd Hand
+                        </span>
+                      ) : product.condition === 'rent' ? (
+                        <span className="bg-purple-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
+                          🔑 Rent
+                        </span>
+                      ) : (
+                        <span className="bg-emerald-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
+                          ✨ New
+                        </span>
+                      )}
+                      <span className="bg-white/90 backdrop-blur-xs text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+                        {product.category}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Body Content */}
@@ -300,6 +329,16 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
           />
         ))}
       </div>
+
+      {/* Product Gallery & Details Modal */}
+      {selectedDetailProduct && (
+        <ProductDetailModal
+          product={selectedDetailProduct}
+          onClose={() => setSelectedDetailProduct(null)}
+          onSelectShop={onSelectShop}
+          onOpenAuth={onOpenAuth}
+        />
+      )}
     </div>
   );
 };

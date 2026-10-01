@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Tag, Store, ShoppingBag, ShieldCheck, MapPin, Phone, MessageCircle, ArrowRight } from 'lucide-react';
+import { Search, Tag, Store, ShoppingBag, ShieldCheck, MapPin, Phone, MessageCircle, ArrowRight, Sparkles, RefreshCw, Key, Box } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { SHOP_CATEGORIES } from '../data/constants';
 import { Shop } from '../types';
@@ -20,6 +20,8 @@ export const SearchAndCategoriesView: React.FC<SearchAndCategoriesViewProps> = (
     setSearchQuery, 
     selectedCategory, 
     setSelectedCategory, 
+    selectedCondition,
+    setSelectedCondition,
     shops, 
     products 
   } = useApp();
@@ -67,7 +69,7 @@ export const SearchAndCategoriesView: React.FC<SearchAndCategoriesViewProps> = (
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="दुकान या सामान का नाम लिखें... (उदा. Sharma Mobile, कपड़े, किराना)"
+            placeholder="दुकान, नया, पुराना या किराये का सामान खोजें... (उदा. Sharma Mobile, ट्रॅक्टर, लहेँगा)"
             className="w-full px-3 py-2 text-sm text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
           />
           {searchQuery && (
@@ -78,6 +80,74 @@ export const SearchAndCategoriesView: React.FC<SearchAndCategoriesViewProps> = (
               साफ़ करें
             </button>
           )}
+        </div>
+      </div>
+
+      {/* 🌟 Product Condition Filter Bar (नया / पुराना / किराये पर) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center">
+            <Sparkles size={18} className="text-amber-600 mr-2" />
+            <span>सामान फ़िल्टर (Product Condition)</span>
+          </h2>
+          {selectedCondition !== 'all' && (
+            <button
+              onClick={() => setSelectedCondition('all')}
+              className="text-xs font-bold text-amber-600 hover:underline cursor-pointer"
+            >
+              सभी सामान दिखाएं
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <button
+            onClick={() => setSelectedCondition('all')}
+            className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center space-x-2 ${
+              selectedCondition === 'all'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-md font-bold'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+            }`}
+          >
+            <Box size={18} />
+            <span className="text-xs font-bold">सभी सामान ({products.length})</span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCondition('new')}
+            className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center space-x-2 ${
+              selectedCondition === 'new'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-md font-bold'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200'
+            }`}
+          >
+            <Sparkles size={18} />
+            <span className="text-xs font-bold">✨ नया (New)</span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCondition('used')}
+            className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center space-x-2 ${
+              selectedCondition === 'used'
+                ? 'bg-amber-600 text-white border-amber-600 shadow-md font-bold'
+                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-200'
+            }`}
+          >
+            <RefreshCw size={18} />
+            <span className="text-xs font-bold">🔄 पुराना / 2nd Hand</span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCondition('rent')}
+            className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center space-x-2 ${
+              selectedCondition === 'rent'
+                ? 'bg-purple-600 text-white border-purple-600 shadow-md font-bold'
+                : 'bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-200'
+            }`}
+          >
+            <Key size={18} />
+            <span className="text-xs font-bold">🔑 किराये पर (Rent)</span>
+          </button>
         </div>
       </div>
 
@@ -163,7 +233,7 @@ export const SearchAndCategoriesView: React.FC<SearchAndCategoriesViewProps> = (
               >
                 <div className="flex items-start space-x-3">
                   <img
-                    src={shop.logoUrl || shop.photoUrl}
+                    src={shop.logoUrl || shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'}
                     alt={shop.shopName}
                     className="w-16 h-16 rounded-2xl object-cover border border-slate-100 shrink-0"
                   />

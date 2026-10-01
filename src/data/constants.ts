@@ -1,4 +1,4 @@
-import { Shop, Product, ShopPost, AppNotification } from '../types';
+import { Shop, Product, ShopPost, AppNotification, SystemSettings } from '../types';
 
 export const SHOP_CATEGORIES = [
   { id: 'mobile_electronics', label: 'Mobile & Electronics', icon: 'Smartphone', color: 'from-blue-500 to-indigo-600' },
@@ -195,7 +195,14 @@ export const DEFAULT_PRODUCTS: Product[] = [
     discountPrice: 22499,
     description: '100W SuperVOOC Fast Charging, Snapdragon 7 Gen 3, Sony LYT-600 OIS Camera। 1 साल की वारंटी + मुफ्त ग्लास स्क्रीन गार्ड।',
     photoUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+    galleryUrls: [
+      'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80'
+    ],
     stockStatus: 'in_stock',
+    condition: 'new',
     productCode: 'OP-NORD-CE4',
     createdAt: '2025-02-01T10:00:00Z'
   },
@@ -210,7 +217,14 @@ export const DEFAULT_PRODUCTS: Product[] = [
     discountPrice: 1699,
     description: '30dB Active Noise Cancellation, 360 Spatial Audio, 40 घंटे की बैटरी बैकअप। 100% ओरिजिनल प्रोडक्ट।',
     photoUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+    galleryUrls: [
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=600&q=80'
+    ],
     stockStatus: 'in_stock',
+    condition: 'new',
     productCode: 'RM-BW3',
     createdAt: '2025-02-02T11:00:00Z'
   },
@@ -225,23 +239,38 @@ export const DEFAULT_PRODUCTS: Product[] = [
     discountPrice: 1399,
     description: 'जयपुरी बंधेज वर्क, मैचिंग दुपट्टा व सलवार सहित। गर्मियों के लिए अत्यंत आरामदायक व पक्के रंग की गारंटी।',
     photoUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+    galleryUrls: [
+      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80'
+    ],
     stockStatus: 'in_stock',
+    condition: 'new',
     productCode: 'VG-SUIT-BND',
     createdAt: '2025-02-03T10:30:00Z'
   },
   {
     id: 'prod-4',
-    shopId: 'shop-verma-garments',
-    shopName: 'Verma Garments & Matching Center',
-    ownerUid: 'user-verma-102',
-    name: 'मेन्स कॉटन लखनवी एम्ब्रॉयडरी कुर्ता',
-    category: 'कपड़े',
-    price: 1500,
-    discountPrice: 1099,
-    description: 'त्योहारों व शादियों के लिए प्रीमियम डिज़ाइनर कुर्ता। सभी साइज (38 से 44) उपलब्ध।',
-    photoUrl: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&w=600&q=80',
+    shopId: 'shop-sharma-mobile',
+    shopName: 'Sharma Mobile & Electronics',
+    ownerUid: 'user-sharma-101',
+    name: 'iPhone 12 128GB (पुराना / सेकंड-हैंड बेस्ट कंडीशन)',
+    category: 'Mobile & Electronics',
+    price: 32000,
+    discountPrice: 26500,
+    description: 'पुराना मोबाइल — 88% बैटरी हेल्थ, बिल्कुल ओरिजिनल स्क्रीन व 100% ओके कंडीशन। बिल, बॉक्स व चार्जर सहित। 3 महीने दुकान वारंटी।',
+    photoUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+    galleryUrls: [
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1512054502232-10a0a035d672?auto=format&fit=crop&w=600&q=80'
+    ],
     stockStatus: 'in_stock',
-    productCode: 'VG-KURTA-LUK',
+    condition: 'used',
+    productCode: 'USED-IPHONE12',
     createdAt: '2025-02-04T12:00:00Z'
   },
   {
@@ -249,14 +278,15 @@ export const DEFAULT_PRODUCTS: Product[] = [
     shopId: 'shop-kisan-hardware',
     shopName: 'Rawla Kisan Hardware & Paints',
     ownerUid: 'user-bishnoi-103',
-    name: '16 लीटर बैटरी चालित 2-in-1 कीटनाशक स्प्रे मशीन',
+    name: '16 लीटर स्प्रे मशीन व सबमर्सिबल पम्प (किराये पर)',
     category: 'Hardware',
-    price: 3600,
-    discountPrice: 2850,
-    description: '12V 12Ah हैवी बैटरी, डबल मोटर, ब्रास गन व 4 अलग-अलग नोजल सहित। 6 महीने की रिप्लेसमेंट वारंटी।',
+    price: 500,
+    discountPrice: 350,
+    description: 'किराये पर उपलब्ध — प्रति दिन दर ₹350। खेत में स्प्रे एवं पानी निकासी के लिए तुरंत ले जाएँ। सिक्योरिटी डिपॉजिट आवश्यक।',
     photoUrl: 'https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=600&q=80',
     stockStatus: 'in_stock',
-    productCode: 'KH-SPRAY-16L',
+    condition: 'rent',
+    productCode: 'RENT-SPRAY-16L',
     createdAt: '2025-02-05T09:00:00Z'
   },
   {
@@ -271,22 +301,24 @@ export const DEFAULT_PRODUCTS: Product[] = [
     description: 'गाय के ताजे दूध के छेने से निर्मित मुलायम और रसीले रसगुल्ले। 100% शुद्धता की गारंटी।',
     photoUrl: 'https://images.unsplash.com/photo-1541832676-9b763b0239ab?auto=format&fit=crop&w=600&q=80',
     stockStatus: 'in_stock',
+    condition: 'new',
     productCode: 'BS-RASGULLA-1KG',
     createdAt: '2025-02-06T08:00:00Z'
   },
   {
     id: 'prod-7',
-    shopId: 'shop-royal-footwear',
-    shopName: 'Royal Footwear & Sports',
-    ownerUid: 'user-soni-106',
-    name: 'राजस्थानी हैंडमेड लेदर मोजड़ी (जोधपुरी वर्क)',
-    category: 'जूते',
-    price: 1400,
-    discountPrice: 999,
-    description: 'असली चमड़े पर बारीक रेशम व ज़री की कढ़ाई। पारंपरिक शादियों व शेरवानी के लिए बेहतरीन।',
-    photoUrl: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=600&q=80',
+    shopId: 'shop-verma-garments',
+    shopName: 'Verma Garments & Matching Center',
+    ownerUid: 'user-verma-102',
+    name: 'शादी-विवाह ब्राइडल लहंगा सेट (किराये पर उपलब्ध)',
+    category: 'कपड़े',
+    price: 8000,
+    discountPrice: 2100,
+    description: 'किराये पर लें — भारी जोधपुरी वर्क वाला नया डिज़ाइनर लहंगा। शादी/पार्टी में पहनने हेतु 3 दिनों के लिए किराये पर ₹2,100 में उपलब्ध।',
+    photoUrl: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80',
     stockStatus: 'in_stock',
-    productCode: 'RF-MOJRI-01',
+    condition: 'rent',
+    productCode: 'RENT-LEHENGA-01',
     createdAt: '2025-02-07T14:00:00Z'
   },
   {
@@ -294,15 +326,32 @@ export const DEFAULT_PRODUCTS: Product[] = [
     shopId: 'shop-janta-medical',
     shopName: 'Janta Medical & Healthcare Store',
     ownerUid: 'user-sethi-105',
-    name: 'ऑटोमैटिक डिजिटल ब्लड प्रेशर मॉनिटर (Dr. Morepen)',
+    name: 'पेशेंट व्हीलचेयर व ऑक्सीजन कंसंट्रेटर (किराये पर)',
     category: 'Medical',
-    price: 2100,
-    discountPrice: 1550,
-    description: 'सटीक रीडिंग, लार्ज LCD डिस्प्ले, 2 उपयोगकर्ताओं की मेमोरी। 1 वर्ष वारंटी।',
+    price: 1500,
+    discountPrice: 499,
+    description: 'किराये पर लें — घर पर बुजुर्गों या मरीजों के लिए फोल्डिंग व्हीलचेयर व मेडिकल बेड किराये पर उपलब्ध (₹499/सप्ताह)।',
     photoUrl: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80',
     stockStatus: 'in_stock',
-    productCode: 'JM-BPMON-01',
+    condition: 'rent',
+    productCode: 'RENT-WHEELCHAIR',
     createdAt: '2025-02-08T15:00:00Z'
+  },
+  {
+    id: 'prod-9',
+    shopId: 'shop-royal-footwear',
+    shopName: 'Royal Footwear & Sports',
+    ownerUid: 'user-soni-106',
+    name: 'ब्रांडेड लेदर शूज (पुराना / सेकंड-हैंड गुड कंडीशन)',
+    category: 'जूते',
+    price: 2500,
+    discountPrice: 850,
+    description: 'पुराना सामान — कम इस्तेमाल किए गए प्रीमियम लेदर फॉर्मल शूज। साइज 8 व 9 उपलब्ध।',
+    photoUrl: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'used',
+    productCode: 'USED-SHOES-02',
+    createdAt: '2025-02-09T10:00:00Z'
   }
 ];
 
@@ -404,7 +453,7 @@ export const ADMIN_CREDENTIALS = {
   phone: '9876543210'
 };
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: SystemSettings = {
   postApprovalRequired: false,
   bannerNotice: '🌾 रावला मंडी के सभी दुकानदारों और ग्राहकों का हार्दिक स्वागत है! अब अपनी दुकान ऑनलाइन जोड़ें।',
   allowRegistrations: true,
@@ -452,5 +501,10 @@ export const DEFAULT_SETTINGS = {
   areaPageTitle: '📍 क्षेत्र अनुसार दुकानें (Area & Location)',
   areaPageSubtitle: 'रावला मंडी के अपने नजदीकी क्षेत्र को चुनें और वहां स्थित सभी सक्रिय दुकानों की सटीक लोकेशन देखें।',
   userPortalTitle: 'यूज़र व शॉपकीपर पोर्टल',
-  customLabels: {}
+  customLabels: {},
+  // Super Admin Header Announcement & Box Size / Layout Controls
+  headerCustomNotice: '📢 रावला मंडी में आपका स्वागत है! मुख्य बाज़ार की दुकानें एवं ताज़ा डिस्काउंट्स देखें।',
+  boxSizeScale: 'normal' as const,
+  cardBorderRadius: 'rounded-2xl' as const,
+  themePrimaryColor: 'amber' as const
 };

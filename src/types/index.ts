@@ -38,6 +38,8 @@ export interface Shop {
   createdAt: string;
 }
 
+export type ProductCondition = 'new' | 'used' | 'rent';
+
 export interface Product {
   id: string;
   shopId: string;
@@ -49,7 +51,9 @@ export interface Product {
   discountPrice?: number;
   description: string;
   photoUrl: string;
+  galleryUrls?: string[];
   stockStatus: 'in_stock' | 'out_of_stock';
+  condition?: ProductCondition;
   productCode?: string;
   createdAt: string;
 }
@@ -134,4 +138,9 @@ export interface SystemSettings {
   userPortalTitle?: string;
   // Dynamic Arbitrary Custom Labels & Button Names
   customLabels?: Record<string, string>;
+  // Super Admin Header Announcement & Box Size / Layout Controls
+  headerCustomNotice?: string;
+  boxSizeScale?: 'compact' | 'normal' | 'spacious' | 'large';
+  cardBorderRadius?: 'rounded-xl' | 'rounded-2xl' | 'rounded-3xl' | 'rounded-none';
+  themePrimaryColor?: 'amber' | 'emerald' | 'indigo' | 'rose' | 'purple';
 }

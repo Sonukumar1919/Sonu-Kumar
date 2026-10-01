@@ -152,7 +152,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 >
                   <div className="flex items-center space-x-3">
                     <img 
-                      src={shop.logoUrl || shop.photoUrl} 
+                      src={shop.logoUrl || shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=200&q=80'} 
                       alt={shop.shopName}
                       className="w-14 h-14 rounded-xl object-cover border border-slate-100" 
                     />
@@ -206,7 +206,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               {savedProducts.map(prod => (
                 <div key={prod.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-4 flex flex-col justify-between space-y-3">
                   <div className="flex space-x-3">
-                    <img src={prod.photoUrl} alt={prod.name} className="w-16 h-16 rounded-xl object-cover" />
+                    <img src={prod.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=200&q=80'} alt={prod.name} className="w-16 h-16 rounded-xl object-cover" />
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{prod.name}</h4>
                       <p className="text-xs text-slate-500">{prod.shopName}</p>

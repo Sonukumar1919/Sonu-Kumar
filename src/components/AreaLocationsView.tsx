@@ -117,7 +117,7 @@ export const AreaLocationsView: React.FC<AreaLocationsViewProps> = ({ onSelectSh
               >
                 <div className="flex items-start space-x-3">
                   <img
-                    src={shop.photoUrl}
+                    src={shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'}
                     alt={shop.shopName}
                     className="w-20 h-20 rounded-2xl object-cover border border-slate-100 shrink-0"
                   />

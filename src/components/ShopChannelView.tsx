@@ -109,7 +109,7 @@ export const ShopChannelView: React.FC<ShopChannelViewProps> = ({
         {/* Banner Cover Image */}
         <div className="relative h-48 sm:h-72 w-full bg-slate-900 overflow-hidden">
           <img
-            src={shop.photoUrl}
+            src={shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'}
             alt={shop.shopName}
             className="w-full h-full object-cover opacity-90"
           />
@@ -152,7 +152,7 @@ export const ShopChannelView: React.FC<ShopChannelViewProps> = ({
             <div className="flex items-end space-x-4">
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-white p-1.5 shadow-xl border-2 border-white overflow-hidden shrink-0">
                 <img
-                  src={shop.logoUrl || shop.photoUrl}
+                  src={shop.logoUrl || shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'}
                   alt={shop.shopName}
                   className="w-full h-full object-cover rounded-2xl"
                 />
@@ -394,16 +394,16 @@ export const ShopChannelView: React.FC<ShopChannelViewProps> = ({
             {activeChannelTab === 'photos' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                  <img src={shop.photoUrl} alt="Store front" className="w-full h-full object-cover" />
+                  <img src={shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'} alt="Store front" className="w-full h-full object-cover" />
                 </div>
-                {shop.logoUrl && (
+                {shop.logoUrl && shop.logoUrl.trim() !== '' && (
                   <div className="h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
                     <img src={shop.logoUrl} alt="Logo" className="w-full h-full object-cover" />
                   </div>
                 )}
                 {shopProducts.slice(0, 4).map(p => (
                   <div key={p.id} className="h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                    <img src={p.photoUrl} alt={p.name} className="w-full h-full object-cover" />
+                    <img src={p.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80'} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>

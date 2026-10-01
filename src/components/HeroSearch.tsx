@@ -2,46 +2,24 @@ import React from 'react';
 import { 
   Search, 
   MapPin, 
-  Tag, 
   Sparkles, 
   ShoppingBag, 
   Store, 
-  Shirt, 
-  Footprints, 
-  ShoppingBasket, 
-  HeartPulse, 
-  UtensilsCrossed, 
-  Wrench, 
-  Armchair, 
-  Smartphone, 
-  Car, 
-  Hammer, 
-  Grid 
+  RefreshCw, 
+  Key, 
+  Box, 
+  CheckCircle2,
+  Package
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { SHOP_CATEGORIES, RAWLA_AREAS } from '../data/constants';
-
-const categoryIconMap: Record<string, React.ReactNode> = {
-  Smartphone: <Smartphone size={18} />,
-  Shirt: <Shirt size={18} />,
-  Footprints: <Footprints size={18} />,
-  ShoppingBasket: <ShoppingBasket size={18} />,
-  HeartPulse: <HeartPulse size={18} />,
-  UtensilsCrossed: <UtensilsCrossed size={18} />,
-  Wrench: <Wrench size={18} />,
-  Armchair: <Armchair size={18} />,
-  Sparkles: <Sparkles size={18} />,
-  Car: <Car size={18} />,
-  Hammer: <Hammer size={18} />,
-  Grid: <Grid size={18} />
-};
+import { RAWLA_AREAS } from '../data/constants';
 
 export const HeroSearch: React.FC = () => {
   const { 
     searchQuery, 
     setSearchQuery, 
-    selectedCategory, 
-    setSelectedCategory, 
+    selectedCondition,
+    setSelectedCondition,
     selectedArea, 
     setSelectedArea,
     shops,
@@ -51,6 +29,10 @@ export const HeroSearch: React.FC = () => {
   } = useApp();
 
   const activeShopsCount = shops.filter(s => s.status === 'active').length;
+
+  const newProductsCount = products.filter(p => !p.condition || p.condition === 'new').length;
+  const usedProductsCount = products.filter(p => p.condition === 'used').length;
+  const rentProductsCount = products.filter(p => p.condition === 'rent').length;
 
   return (
     <div className="relative bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent pt-6 sm:pt-10 pb-8 px-4 sm:px-6 lg:px-8 border-b border-amber-100">
@@ -68,7 +50,7 @@ export const HeroSearch: React.FC = () => {
         </h1>
         
         <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 font-medium">
-          दुकानें खोजें, मोबाइल नंबर व WhatsApp पर सीधे संपर्क करें, ताज़ा प्रोडक्ट्स और दैनिक ऑफर्स देखें।
+          दुकानें खोजें, मोबाइल नंबर व WhatsApp पर सीधे संपर्क करें, नया, पुराना व किराये पर मिलने वाला सामान देखें।
         </p>
 
         {/* Unified Search Input Box */}
@@ -82,7 +64,7 @@ export const HeroSearch: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="दुकान, सामान या पोस्ट खोजें... (जैसे: Mobile, कपड़े, खाद, रसगुल्ले)"
+              placeholder="दुकान, नया, पुराना या किराये का सामान खोजें... (उदा. iPhone, ट्रैक्टर, स्प्रे मशीन)"
               className="w-full px-3 py-2 text-sm sm:text-base text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
             />
 
@@ -98,7 +80,7 @@ export const HeroSearch: React.FC = () => {
             <button
               onClick={() => {
                 if (searchQuery.trim()) {
-                  setActiveTab('shops');
+                  setActiveTab('products');
                 }
               }}
               className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-amber-600/30 transition shrink-0 cursor-pointer"
@@ -147,68 +129,109 @@ export const HeroSearch: React.FC = () => {
 
       </div>
 
-      {/* Shop Categories Grid Bar */}
-      <div className="max-w-7xl mx-auto mt-8">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center">
-            <Tag size={18} className="text-amber-600 mr-2" />
-            दुकान श्रेणियां (Shop Categories)
+      {/* 🌟 Mandatory Product Condition Selector Bar (Replacing Old Shop Categories Grid) */}
+      <div className="max-w-5xl mx-auto mt-8">
+        <div className="text-center mb-4">
+          <span className="bg-amber-100 text-amber-900 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+            सामान फ़िल्टर करें (Product Types)
+          </span>
+          <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-1 font-display">
+            नया, पुराना या किराये का सामान चुनें
           </h2>
-          {selectedCategory !== 'all' && (
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className="text-xs font-bold text-amber-600 hover:text-amber-700 underline cursor-pointer"
-            >
-              सभी श्रेणियाँ देखें
-            </button>
-          )}
+          <p className="text-xs text-slate-500">रावला मंडी के दुकानदारों द्वारा उपलब्ध कराया गया सामान</p>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-2.5">
-          {/* 'All' button */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* All Products */}
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition border text-center cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/30'
-                : 'bg-white hover:bg-amber-50/80 text-slate-700 border-slate-200'
+            onClick={() => setSelectedCondition('all')}
+            className={`p-4 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-2 relative overflow-hidden ${
+              selectedCondition === 'all'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xl ring-2 ring-slate-900/50'
+                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
             }`}
           >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-1.5 ${
-              selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              selectedCondition === 'all' ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-700'
             }`}>
-              <Store size={18} />
+              <Box size={20} />
             </div>
-            <span className="text-[11px] sm:text-xs font-bold truncate max-w-full">
-              सभी दुकानें
-            </span>
+            <div>
+              <div className="text-xs sm:text-sm font-extrabold">सभी सामान</div>
+              <div className={`text-[10px] font-medium mt-0.5 ${selectedCondition === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>
+                {products.length} कुल सामान
+              </div>
+            </div>
           </button>
 
-          {SHOP_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.label || selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(isSelected ? 'all' : cat.label)}
-                className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition border text-center cursor-pointer ${
-                  isSelected
-                    ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/30 scale-102'
-                    : 'bg-white hover:bg-amber-50/80 text-slate-700 border-slate-200'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-1.5 ${
-                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {categoryIconMap[cat.icon] || <Store size={18} />}
-                </div>
-                <span className="text-[11px] sm:text-xs font-semibold truncate max-w-full leading-tight">
-                  {cat.label}
-                </span>
-              </button>
-            );
-          })}
+          {/* New Products */}
+          <button
+            onClick={() => setSelectedCondition('new')}
+            className={`p-4 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-2 relative overflow-hidden ${
+              selectedCondition === 'new'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xl ring-2 ring-emerald-500/50'
+                : 'bg-emerald-50/50 hover:bg-emerald-50 text-emerald-950 border-emerald-200'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              selectedCondition === 'new' ? 'bg-white text-emerald-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <div className="text-xs sm:text-sm font-extrabold">✨ नया सामान (New)</div>
+              <div className={`text-[10px] font-medium mt-0.5 ${selectedCondition === 'new' ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                {newProductsCount} नए प्रोडक्ट्स
+              </div>
+            </div>
+          </button>
+
+          {/* Used / Second-Hand Products */}
+          <button
+            onClick={() => setSelectedCondition('used')}
+            className={`p-4 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-2 relative overflow-hidden ${
+              selectedCondition === 'used'
+                ? 'bg-amber-600 text-white border-amber-600 shadow-xl ring-2 ring-amber-500/50'
+                : 'bg-amber-50/50 hover:bg-amber-50 text-amber-950 border-amber-200'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              selectedCondition === 'used' ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-700'
+            }`}>
+              <RefreshCw size={20} />
+            </div>
+            <div>
+              <div className="text-xs sm:text-sm font-extrabold">🔄 पुराना / 2nd Hand</div>
+              <div className={`text-[10px] font-medium mt-0.5 ${selectedCondition === 'used' ? 'text-amber-100' : 'text-amber-800'}`}>
+                {usedProductsCount} पुराने प्रोडक्ट्स
+              </div>
+            </div>
+          </button>
+
+          {/* Rental Products */}
+          <button
+            onClick={() => setSelectedCondition('rent')}
+            className={`p-4 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center justify-center space-y-2 relative overflow-hidden ${
+              selectedCondition === 'rent'
+                ? 'bg-purple-600 text-white border-purple-600 shadow-xl ring-2 ring-purple-500/50'
+                : 'bg-purple-50/50 hover:bg-purple-50 text-purple-950 border-purple-200'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              selectedCondition === 'rent' ? 'bg-white text-purple-700' : 'bg-purple-100 text-purple-700'
+            }`}>
+              <Key size={20} />
+            </div>
+            <div>
+              <div className="text-xs sm:text-sm font-extrabold">🔑 किराये पर (Rent)</div>
+              <div className={`text-[10px] font-medium mt-0.5 ${selectedCondition === 'rent' ? 'text-purple-100' : 'text-purple-800'}`}>
+                {rentProductsCount} किराये के सामान
+              </div>
+            </div>
+          </button>
         </div>
       </div>
     </div>
   );
 };
+

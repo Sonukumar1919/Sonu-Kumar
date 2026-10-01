@@ -58,7 +58,9 @@
         "discountPrice": { "type": "number" },
         "description": { "type": "string" },
         "photoUrl": { "type": "string" },
+        "galleryUrls": { "type": "array" },
         "stockStatus": { "type": "string", "enum": ["in_stock", "out_of_stock"] },
+        "condition": { "type": "string", "enum": ["new", "used", "rent"] },
         "productCode": { "type": "string" },
         "createdAt": { "type": "string" }
       },

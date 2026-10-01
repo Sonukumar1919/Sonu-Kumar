@@ -190,7 +190,7 @@ export const PostsFeed: React.FC<PostsFeedProps> = ({
                   </p>
 
                   {/* Photo if provided */}
-                  {post.photoUrl && (
+                  {post.photoUrl && post.photoUrl.trim() !== '' && (
                     <div className="mt-3 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 max-h-[420px] flex items-center justify-center">
                       <img 
                         src={post.photoUrl} 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ShoppingBag, 
   Heart, 
@@ -7,10 +7,17 @@ import {
   Store, 
   CheckCircle, 
   XCircle,
-  Tag
+  Tag,
+  Sparkles,
+  RefreshCw,
+  Key,
+  Box,
+  Eye,
+  Images
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Product, Shop } from '../types';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface ProductsGridProps {
   onSelectShop: (shop: Shop) => void;
@@ -27,11 +34,15 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
     products, 
     shops, 
     selectedCategory, 
+    selectedCondition,
+    setSelectedCondition,
     searchQuery, 
     isProductSaved, 
     toggleSaveProduct,
     currentUser 
   } = useApp();
+
+  const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
 
   // Filter products
   const filteredProducts = products.filter(product => {
@@ -45,6 +56,14 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
 
     if (selectedCategory !== 'all' && product.category !== selectedCategory) {
       return false;
+    }
+
+    // Filter by product condition (new / used / rent)
+    if (selectedCondition !== 'all') {
+      const prodCond = product.condition || 'new';
+      if (prodCond !== selectedCondition) {
+        return false;
+      }
     }
 
     if (searchQuery.trim()) {
@@ -76,7 +95,7 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
     if (!shop) return;
     const cleanNumber = shop.whatsappNumber.replace(/\D/g, '');
     const message = encodeURIComponent(
-      `नमस्ते ${shop.shopName}! मुझे आपके प्रोडक्ट "${product.name}" (कीमत: ₹${product.discountPrice || product.price}) के बारे में जानकारी चाहिए। क्या यह स्टॉक में है?`
+      `नमस्ते ${shop.shopName}! मुझे आपके प्रोडक्ट "${product.name}" (कीमत: ₹${product.discountPrice || product.price}) के बारे में जानकारी चाहिए। क्या यह उपलब्ध है?`
     );
     window.open(`https://wa.me/91${cleanNumber}?text=${message}`, '_blank');
   };
@@ -91,30 +110,87 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {!filterShopId && (
-        <div className="flex items-center justify-between pb-6 border-b border-slate-200/80 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80 mb-6">
           <div>
             <div className="flex items-center space-x-2">
               <div className="w-2.5 h-6 bg-emerald-600 rounded-full"></div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-display">
-                📦 प्रोडक्ट्स व सामान (Marketplace Products)
+                📦 बाज़ार के प्रोडक्ट्स व सामान (Marketplace Products)
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              रावला मंडी की दुकानों में उपलब्ध ताज़ा सामान व दर सूची ({filteredProducts.length} प्रोडक्ट्स उपलब्ध)
+              रावला मंडी की दुकानों में उपलब्ध नया, पुराना व किराये का सामान ({filteredProducts.length} प्रोडक्ट्स उपलब्ध)
             </p>
+          </div>
+
+          {/* Condition Filter Pills */}
+          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 shrink-0">
+            <button
+              onClick={() => setSelectedCondition('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer shrink-0 ${
+                selectedCondition === 'all'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Box size={13} />
+              <span>सभी ({products.length})</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCondition('new')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer shrink-0 ${
+                selectedCondition === 'new'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              <Sparkles size={13} />
+              <span>✨ नया सामान</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCondition('used')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer shrink-0 ${
+                selectedCondition === 'used'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              <RefreshCw size={13} />
+              <span>🔄 पुराना / 2nd Hand</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCondition('rent')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer shrink-0 ${
+                selectedCondition === 'rent'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200'
+              }`}
+            >
+              <Key size={13} />
+              <span>🔑 किराये पर (Rent)</span>
+            </button>
           </div>
         </div>
       )}
 
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 my-6 p-8">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 my-6 p-8 space-y-3">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
             <ShoppingBag size={32} />
           </div>
-          <h3 className="text-lg font-bold text-slate-800">कोई प्रोडक्ट नहीं मिला</h3>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1">
-            इस श्रेणी या खोज में कोई प्रोडक्ट नहीं मिला। कृपया फ़िल्टर बदलें।
+          <h3 className="text-lg font-bold text-slate-800">इस श्रेणी / स्थिति में कोई सामान नहीं मिला</h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+            चुने गए फ़िल्टर (नया, पुराना या किराये पर) में अभी कोई प्रोडक्ट नहीं मिला। कृपया अन्य फ़िल्टर बटन दबाएं।
           </p>
+          <button
+            onClick={() => setSelectedCondition('all')}
+            className="bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer"
+          >
+            सभी सामान दिखाएं
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -125,15 +201,22 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
               ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
               : 0;
 
+            const cond = product.condition || 'new';
+
+            const totalPhotoCount = (product.galleryUrls && product.galleryUrls.length > 0)
+              ? product.galleryUrls.length
+              : 1;
+
             return (
               <div
                 key={product.id}
-                className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:border-emerald-300"
+                onClick={() => setSelectedDetailProduct(product)}
+                className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:border-amber-400 cursor-pointer"
               >
                 {/* Product Photo */}
                 <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={product.photoUrl}
+                    src={product.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     loading="lazy"
@@ -143,6 +226,14 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
                   {discountPercent > 0 && (
                     <span className="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-lg shadow-md">
                       {discountPercent}% OFF
+                    </span>
+                  )}
+
+                  {/* Multiple Photos Count Indicator */}
+                  {totalPhotoCount > 1 && (
+                    <span className="absolute top-2.5 left-20 bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-md flex items-center space-x-1">
+                      <Images size={11} />
+                      <span>{totalPhotoCount} फ़ोटो</span>
                     </span>
                   )}
 
@@ -182,17 +273,31 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
                 {/* Content */}
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                   <div>
-                    {/* Category */}
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                      <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-semibold">
+                    {/* Condition Badge & Category */}
+                    <div className="flex items-center justify-between text-[11px] font-medium gap-1 flex-wrap">
+                      {cond === 'used' ? (
+                        <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-extrabold text-[10px] flex items-center space-x-1">
+                          <RefreshCw size={10} />
+                          <span>🔄 पुराना / 2nd Hand</span>
+                        </span>
+                      ) : cond === 'rent' ? (
+                        <span className="bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded-md font-extrabold text-[10px] flex items-center space-x-1">
+                          <Key size={10} />
+                          <span>🔑 किराये पर (Rent)</span>
+                        </span>
+                      ) : (
+                        <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-md font-extrabold text-[10px] flex items-center space-x-1">
+                          <Sparkles size={10} />
+                          <span>✨ नया (Brand New)</span>
+                        </span>
+                      )}
+
+                      <span className="text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-md">
                         {product.category}
                       </span>
-                      {product.productCode && (
-                        <span className="text-slate-400">कोड: {product.productCode}</span>
-                      )}
                     </div>
 
-                    <h3 className="font-bold text-sm sm:text-base text-slate-900 mt-1.5 line-clamp-2 leading-snug group-hover:text-emerald-700 transition">
+                    <h3 className="font-bold text-sm sm:text-base text-slate-900 mt-2 line-clamp-2 leading-snug group-hover:text-emerald-700 transition">
                       {product.name}
                     </h3>
 
@@ -212,6 +317,9 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
                           ₹{product.price.toLocaleString('en-IN')}
                         </span>
                       )}
+                      {cond === 'rent' && (
+                        <span className="text-[11px] font-bold text-purple-700">/किराया</span>
+                      )}
                     </div>
 
                     {/* Shop details & link */}
@@ -226,7 +334,7 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
                           <span className="truncate">{shop.shopName}</span>
                         </span>
                         <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
-                          दुकान देखें &gt;
+                          दुकान चैनल &gt;
                         </span>
                       </div>
                     )}
@@ -254,6 +362,16 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
             );
           })}
         </div>
+      )}
+
+      {/* Product Gallery & Details Modal */}
+      {selectedDetailProduct && (
+        <ProductDetailModal
+          product={selectedDetailProduct}
+          onClose={() => setSelectedDetailProduct(null)}
+          onSelectShop={onSelectShop}
+          onOpenAuth={onOpenAuth}
+        />
       )}
     </section>
   );

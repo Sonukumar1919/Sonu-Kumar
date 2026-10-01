@@ -137,9 +137,7 @@ const MainLayout: React.FC = () => {
           </div>
         ) : (
           /* Default Button 1: Home View (Post feeds, Super new auto-swipe, 5s trending swipe) */
-          <div className="space-y-6">
-            <HeroSearch />
-
+          <div className="space-y-6 pt-2">
             {/* 1. ⚡ सुपर न्यू प्रोडक्ट्स ऑटो-स्वाइप (Super New Products Automatic Swipe Slider) */}
             <SuperNewProductsSlider
               onSelectShop={handleSelectShop}

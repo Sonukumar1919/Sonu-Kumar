@@ -154,7 +154,7 @@ export const ShopsList: React.FC<ShopsListProps> = ({
                 {/* Shop Cover Image */}
                 <div className="relative h-44 sm:h-48 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={shop.photoUrl}
+                    src={shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'}
                     alt={shop.shopName}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     loading="lazy"
@@ -184,7 +184,7 @@ export const ShopsList: React.FC<ShopsListProps> = ({
                     <div className="flex items-center space-x-2">
                       <div className="w-10 h-10 rounded-xl bg-white p-0.5 shadow-md overflow-hidden shrink-0 border border-white">
                         <img 
-                          src={shop.logoUrl || shop.photoUrl} 
+                          src={shop.logoUrl || shop.photoUrl || 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80'} 
                           alt="logo" 
                           className="w-full h-full object-cover rounded-lg"
                         />

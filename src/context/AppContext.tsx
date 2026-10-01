@@ -48,6 +48,8 @@ interface AppContextType {
   setSelectedArea: (area: string) => void;
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+  selectedCondition: 'all' | 'new' | 'used' | 'rent';
+  setSelectedCondition: (cond: 'all' | 'new' | 'used' | 'rent') => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   
@@ -100,8 +102,8 @@ interface AppContextType {
   setInlineEditMode: (active: boolean) => void;
   selectedFieldForEdit: string | null;
   setSelectedFieldForEdit: (field: string | null) => void;
-  customizerCategory: 'branding' | 'buttons' | 'headings' | 'banner' | 'custom';
-  openCustomizerForField: (category?: 'branding' | 'buttons' | 'headings' | 'banner' | 'custom', fieldKey?: string) => void;
+  customizerCategory: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout';
+  openCustomizerForField: (category?: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout', fieldKey?: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -151,15 +153,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [selectedArea, setSelectedArea] = useState<string>('सभी क्षेत्र (All Areas)');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCondition, setSelectedCondition] = useState<'all' | 'new' | 'used' | 'rent'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Superuser Live CMS Customizer & Inline Edit states
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
   const [inlineEditMode, setInlineEditMode] = useState<boolean>(false);
   const [selectedFieldForEdit, setSelectedFieldForEdit] = useState<string | null>(null);
-  const [customizerCategory, setCustomizerCategory] = useState<'branding' | 'buttons' | 'headings' | 'banner' | 'custom'>('branding');
+  const [customizerCategory, setCustomizerCategory] = useState<'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout'>('branding');
 
-  const openCustomizerForField = (category: 'branding' | 'buttons' | 'headings' | 'banner' | 'custom' = 'branding', fieldKey?: string) => {
+  const openCustomizerForField = (category: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout' = 'branding', fieldKey?: string) => {
     setCustomizerCategory(category);
     if (fieldKey) {
       setSelectedFieldForEdit(fieldKey);
@@ -201,6 +204,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let unsubscribeShops: (() => void) | undefined;
     let unsubscribeProducts: (() => void) | undefined;
     let unsubscribePosts: (() => void) | undefined;
+    let unsubscribeSettings: (() => void) | undefined;
 
     try {
       const shopsCol = collection(db, 'shops');
@@ -255,7 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Settings live stream
       const settingsDocRef = doc(db, 'settings', 'global');
-      const unsubscribeSettings = onSnapshot(settingsDocRef, (snap) => {
+      unsubscribeSettings = onSnapshot(settingsDocRef, (snap) => {
         if (snap.exists()) {
           const remoteSettings = snap.data() as Partial<SystemSettings>;
           setSystemSettings(prev => ({ ...DEFAULT_SETTINGS, ...prev, ...remoteSettings }));
@@ -740,6 +744,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedArea,
         selectedCategory,
         setSelectedCategory,
+        selectedCondition,
+        setSelectedCondition,
         searchQuery,
         setSearchQuery,
         sendOtp,

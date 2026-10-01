@@ -42,7 +42,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     systemSettings,
     logout,
     loginAsDemoUser,
-    setSelectedShop
+    setSelectedShop,
+    openCustomizerForField
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -141,9 +142,41 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
       </div>
+      </div>
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Super Admin Live Notice / Broadcast Header Bar (Visible to everyone, editable by Super Admin) */}
+        {systemSettings.headerCustomNotice && (
+          <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border-b border-amber-200/80 px-3 py-1.5 flex items-center justify-between text-xs text-slate-800 font-semibold">
+            <div className="flex items-center space-x-2 truncate">
+              <span className="bg-amber-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0 shadow-2xs">
+                📢 सुपर एडमिन सूचना
+              </span>
+              <span className="truncate text-slate-900 font-bold">{systemSettings.headerCustomNotice}</span>
+            </div>
+
+            {role === 'admin' && (
+              <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+                <button
+                  onClick={() => openCustomizerForField('branding', 'headerCustomNotice')}
+                  className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-md transition cursor-pointer flex items-center space-x-1"
+                  title="यहाँ जो भी लिखें वह सभी को लाइव दिखेगा"
+                >
+                  <span>✏️ हेडर मैसेज बदलें</span>
+                </button>
+                <button
+                  onClick={() => openCustomizerForField('layout')}
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-md transition cursor-pointer flex items-center space-x-1"
+                  title="बॉक्स का आकार (Box Size) व स्टाइल बदलें"
+                >
+                  <span>📐 बॉक्स साइज़ बदलें</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between h-16 sm:h-18">
           
           {/* Logo */}

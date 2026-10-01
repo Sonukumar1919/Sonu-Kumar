@@ -31,7 +31,7 @@ import { SystemSettings } from '../types';
 interface SiteCustomizerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialCategory?: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom';
+  initialCategory?: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout';
 }
 
 export const SiteCustomizerModal: React.FC<SiteCustomizerModalProps> = ({ 
@@ -54,7 +54,7 @@ export const SiteCustomizerModal: React.FC<SiteCustomizerModalProps> = ({
     ...systemSettings
   });
 
-  const [activeCategory, setActiveCategory] = useState<'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom'>('branding');
+  const [activeCategory, setActiveCategory] = useState<'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout'>('branding');
   const [filterQuery, setFilterQuery] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -256,6 +256,17 @@ export const SiteCustomizerModal: React.FC<SiteCustomizerModalProps> = ({
             }`}
           >
             ➕ 6. कस्टम नाम/बटन
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveCategory('layout'); setSelectedFieldForEdit(null); }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
+              activeCategory === 'layout' 
+                ? 'bg-purple-600 text-white shadow-xs' 
+                : 'text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            📐 7. बॉक्स साइज़ व लेआउट
           </button>
         </div>
 
@@ -783,6 +794,142 @@ export const SiteCustomizerModal: React.FC<SiteCustomizerModalProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 7: LAYOUT & BOX SIZES */}
+          {activeCategory === 'layout' && (
+            <div className="space-y-5">
+              <div className="p-3.5 bg-purple-50 rounded-2xl border border-purple-200 text-xs text-purple-950 font-medium">
+                यहाँ से सुपर एडमिन पूरी वेबसाइट के लेआउट, कार्ड/बॉक्स के आकार (Box Size Scale), कोनों की गोलाई (Border Radius) और हेडर टेक्स्ट को नियंत्रित कर सकते हैं!
+              </div>
+
+              {/* 1. Header Broadcast Text Field */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                <label className="block text-xs font-black text-slate-900 uppercase">
+                  📢 सुपर एडमिन हेडर घोषणा (सभी को लाइव दिखेगी)
+                </label>
+                <input
+                  type="text"
+                  value={formData.headerCustomNotice || ''}
+                  onChange={(e) => setFormData({ ...formData, headerCustomNotice: e.target.value })}
+                  placeholder="यहाँ जो भी लिखेंगे वह सबसे ऊपर हेडर बार में सभी ग्राहकों को तुरंत दिखेगा..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-900"
+                />
+              </div>
+
+              {/* 2. Box Size Scale */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <label className="block text-xs font-black text-slate-900 uppercase">
+                  📦 कार्ड व बॉक्स का आकार (Box Size Scale)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, boxSizeScale: 'compact' })}
+                    className={`p-3 rounded-xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.boxSizeScale === 'compact'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md ring-2 ring-purple-300'
+                        : 'bg-white hover:bg-purple-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>कम्पैक्ट (Compact)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, boxSizeScale: 'normal' })}
+                    className={`p-3 rounded-xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.boxSizeScale === 'normal' || !formData.boxSizeScale
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md ring-2 ring-purple-300'
+                        : 'bg-white hover:bg-purple-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>मानक (Standard)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, boxSizeScale: 'spacious' })}
+                    className={`p-3 rounded-xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.boxSizeScale === 'spacious'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md ring-2 ring-purple-300'
+                        : 'bg-white hover:bg-purple-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>बड़ा (Spacious)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, boxSizeScale: 'large' })}
+                    className={`p-3 rounded-xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.boxSizeScale === 'large'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md ring-2 ring-purple-300'
+                        : 'bg-white hover:bg-purple-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>विशाल (Extra Large)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Card Border Radius */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <label className="block text-xs font-black text-slate-900 uppercase">
+                  ⭕ कार्ड के कोनों की गोलाई (Corner Roundness)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cardBorderRadius: 'rounded-2xl' })}
+                    className={`p-3 rounded-2xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.cardBorderRadius === 'rounded-2xl' || !formData.cardBorderRadius
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>गोलाकार (2XL)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cardBorderRadius: 'rounded-3xl' })}
+                    className={`p-3 rounded-3xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.cardBorderRadius === 'rounded-3xl'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>अति गोलाकार (3XL)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cardBorderRadius: 'rounded-xl' })}
+                    className={`p-3 rounded-xl border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.cardBorderRadius === 'rounded-xl'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>मध्यम (XL)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cardBorderRadius: 'rounded-none' })}
+                    className={`p-3 rounded-none border text-center text-xs font-bold transition cursor-pointer ${
+                      formData.cardBorderRadius === 'rounded-none'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span>चौकोर (Sharp Edge)</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
           )}
 
