@@ -1,0 +1,6 @@
+{
+  "name": "RAWLA MANDI - डिजिटल मंडी और लोकल बाज़ार",
+  "description": "रावला मंडी का डिजिटल बाज़ार - स्थानीय दुकानें खोजें, उत्पाद देखें, दुकानदार अपनी दुकान रजिस्टर करें और ऑफर्स पाएं।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

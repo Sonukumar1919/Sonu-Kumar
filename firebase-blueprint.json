@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role, phone, and saved items",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "shopkeeper", "admin"] },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "savedShopIds": { "type": "array" },
+        "savedProductIds": { "type": "array" },
+        "savedPostIds": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "phoneNumber", "role", "name"]
+    },
+    "Shop": {
+      "title": "Shop",
+      "description": "Local shop registered in Rawla Mandi",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "shopName": { "type": "string" },
+        "category": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "address": { "type": "string" },
+        "area": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "openingTime": { "type": "string" },
+        "closingTime": { "type": "string" },
+        "googleMapLocation": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "active", "blocked", "rejected"] },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "ownerUid", "shopName", "category", "mobileNumber", "address", "area", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product listed by an approved shop in Rawla Mandi",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shopId": { "type": "string" },
+        "shopName": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "discountPrice": { "type": "number" },
+        "description": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "stockStatus": { "type": "string", "enum": ["in_stock", "out_of_stock"] },
+        "productCode": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "shopId", "ownerUid", "name", "price", "stockStatus"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Shop post or announcement or daily offer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shopId": { "type": "string" },
+        "shopName": { "type": "string" },
+        "shopLogo": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "offer": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "hidden"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "shopId", "ownerUid", "title", "description", "status"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notifications for user, shopkeeper or admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "targetUid": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "link": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "targetUid", "title", "message"]
+    },
+    "SystemSetting": {
+      "title": "SystemSetting",
+      "description": "Global settings for the marketplace",
+      "type": "object",
+      "properties": {
+        "postApprovalRequired": { "type": "boolean" },
+        "bannerNotice": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/shops/{shopId}": {
+      "schema": { "$ref": "#/entities/Shop" },
+      "description": "Rawla Mandi shops directory"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Products listed by shopkeepers"
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Shop posts and daily deals"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "User and admin notifications"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SystemSetting" },
+      "description": "Platform global configuration"
+    }
+  }
+}

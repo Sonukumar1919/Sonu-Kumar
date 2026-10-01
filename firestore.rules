@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'sonukumar106163@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Admins collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Shops
+    match /shops/{shopId} {
+      // Public can read active shops; owners and admins can read any status
+      allow read: if resource == null || resource.data.status == 'active' || (isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin()));
+      
+      // Shopkeeper registration (initially pending)
+      allow create: if isSignedIn() && (
+        request.resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+      
+      // Update: Owner can update their shop info; status change reserved for admin
+      allow update: if isSignedIn() && (
+        isAdmin() || (
+          resource.data.ownerUid == request.auth.uid &&
+          (request.resource.data.status == resource.data.status || isAdmin())
+        )
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Products
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (
+        request.resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (
+        request.resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (
+        resource.data.targetUid == request.auth.uid ||
+        resource.data.targetUid == 'all' ||
+        isAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (
+        resource.data.targetUid == request.auth.uid || isAdmin()
+      );
+    }
+
+    // System Settings - Public read and allow live updates broadcast
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
