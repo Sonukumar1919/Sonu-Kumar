@@ -32,13 +32,18 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
   const activeProducts = products
     .filter(p => {
       const shop = shops.find(s => s.id === p.shopId);
-      return shop && shop.status === 'active';
+      return (shop ? shop.status === 'active' : true) && (p.status === 'active' || !p.status);
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const touchStartX = useRef<number | null>(null);
+
+  // Touch and mouse drag swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [mouseStartX, setMouseStartX] = useState<number | null>(null);
 
   // Responsive items per view: mobile 1, tablet 2, desktop 3
   const [itemsPerView, setItemsPerView] = useState(3);
@@ -79,17 +84,50 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
     setCurrentIndex(prev => (prev >= maxIndex ? 0 : prev + 1));
   };
 
-  // Touch swipe support
+  // Touch swipe support (Mobile)
+  const minSwipeDistance = 25;
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsPaused(true);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) handleNext();
-    else if (diff < -50) handlePrev();
-    touchStartX.current = null;
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) {
+      handleNext();
+    } else if (distance < -minSwipeDistance) {
+      handlePrev();
+    }
+    setIsPaused(false);
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  // Mouse drag support (Desktop / Laptop)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setMouseStartX(e.clientX);
+    setIsMouseDown(true);
+    setIsPaused(true);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isMouseDown || mouseStartX === null) return;
+    const distance = mouseStartX - e.clientX;
+    if (distance > minSwipeDistance) {
+      handleNext();
+    } else if (distance < -minSwipeDistance) {
+      handlePrev();
+    }
+    setIsMouseDown(false);
+    setMouseStartX(null);
+    setIsPaused(false);
   };
 
   const handleWhatsApp = (e: React.MouseEvent, product: Product) => {
@@ -125,12 +163,12 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
               <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight font-display">
                 {systemSettings.heroSuperNewTitle || '⚡ SUPER NEW PRODUCTS'}
               </h2>
-              <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-                Auto Swipe 🔄
+              <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse flex items-center space-x-1">
+                <span>Auto & Touch Swipe 🔄</span>
               </span>
             </div>
             <p className="text-xs text-slate-500 font-medium">
-              {systemSettings.heroSuperNewSubtitle || 'रावला मंडी में आज का बिल्कुल नया स्टॉक व सामान (ऑटोमैटिक स्वाइप)'}
+              {systemSettings.heroSuperNewSubtitle || 'रावला मंडी में आज का बिल्कुल नया स्टॉक व सामान (स्वाइप करके देखें)'}
             </p>
           </div>
         </div>
@@ -154,13 +192,16 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
         </div>
       </div>
 
-      {/* Slider Carousel Container */}
+      {/* Slider Carousel Container with Touch & Drag Support */}
       <div 
-        className="relative overflow-hidden rounded-3xl"
+        className="relative overflow-hidden rounded-3xl touch-pan-y select-none cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        onMouseLeave={() => { setIsPaused(false); setIsMouseDown(false); }}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
       >
         <div 
           className="flex transition-transform duration-700 ease-out"
@@ -184,7 +225,7 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
                 style={{ width: `${100 / itemsPerView}%` }}
                 onClick={() => setSelectedDetailProduct(product)}
               >
-                <div className="bg-white rounded-3xl border border-amber-200/80 p-3 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group hover:border-amber-400 relative overflow-hidden">
+                <div className="bg-white/95 backdrop-blur-md rounded-3xl border border-amber-200/80 p-3 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group hover:border-amber-400 relative overflow-hidden">
                   
                   {/* Top New Tag */}
                   <div className="absolute top-5 left-5 z-10 flex items-center space-x-1.5">
@@ -226,7 +267,7 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
                     <img
                       src={product.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80'}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-108 transition duration-700"
+                      className="w-full h-full object-cover group-hover:scale-108 transition duration-700 pointer-events-none"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
@@ -258,7 +299,7 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
                       {/* Shop Name & link */}
                       {shop && (
                         <div 
-                          onClick={() => onSelectShop(shop)}
+                          onClick={(e) => { e.stopPropagation(); onSelectShop(shop); }}
                           className="flex items-center text-xs font-semibold text-amber-700 hover:text-amber-800 cursor-pointer truncate mb-1"
                         >
                           <Store size={12} className="mr-1 shrink-0" />

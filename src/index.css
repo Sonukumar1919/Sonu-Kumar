@@ -29,3 +29,28 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Dynamic theme background gradient morphing animation */
+@keyframes themeGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-theme-flow {
+  background: linear-gradient(-45deg, #fff7ed, #f0fdf4, #f0f9ff, #fdf2f8, #fef3c7);
+  background-size: 400% 400%;
+  animation: themeGradientShift 14s ease infinite;
+}
+
+.animate-theme-glow {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(16, 185, 129, 0.12), rgba(99, 102, 241, 0.1), rgba(244, 63, 94, 0.1));
+  background-size: 300% 300%;
+  animation: themeGradientShift 10s ease infinite;
+}
