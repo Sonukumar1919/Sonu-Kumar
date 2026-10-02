@@ -284,16 +284,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } else {
             const list: Product[] = [];
             snapshot.forEach((d) => list.push({ ...(d.data() as Product), id: d.id }));
-            setProducts(prev => {
+            setProducts(() => {
               const map = new Map<string, Product>();
+              // Baseline fallback default products
               DEFAULT_PRODUCTS.forEach(p => map.set(p.id, p));
+              // Real-time Firestore products (overrides defaults and adds new shopkeeper products)
               list.forEach(p => map.set(p.id, p));
-              prev.forEach(p => {
-                if (!map.has(p.id)) map.set(p.id, p);
-              });
-              return Array.from(map.values());
+              return Array.from(map.values()).sort((a, b) => 
+                new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+              );
             });
           }
+        }, (error) => {
+          console.warn('Firestore products stream notice:', error.message);
         });
 
         // 3. Posts live stream & auto-seed

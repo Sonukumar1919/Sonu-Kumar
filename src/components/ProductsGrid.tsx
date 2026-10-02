@@ -46,9 +46,11 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
 
   // Filter products
   const filteredProducts = products.filter(product => {
-    // Only products from active shops
+    // Hide product only if shop is explicitly blocked or rejected
     const shop = shops.find(s => s.id === product.shopId);
-    if (!shop || shop.status !== 'active') return false;
+    if (shop && (shop.status === 'blocked' || shop.status === 'rejected')) {
+      return false;
+    }
 
     if (filterShopId && product.shopId !== filterShopId) {
       return false;

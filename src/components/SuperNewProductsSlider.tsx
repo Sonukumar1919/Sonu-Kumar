@@ -32,7 +32,10 @@ export const SuperNewProductsSlider: React.FC<SuperNewProductsSliderProps> = ({
   const activeProducts = products
     .filter(p => {
       const shop = shops.find(s => s.id === p.shopId);
-      return (shop ? shop.status === 'active' : true) && (p.status === 'active' || !p.status);
+      if (shop && (shop.status === 'blocked' || shop.status === 'rejected')) {
+        return false;
+      }
+      return p.status === 'active' || !p.status;
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
