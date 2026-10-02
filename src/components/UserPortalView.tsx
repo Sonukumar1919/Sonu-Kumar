@@ -75,28 +75,6 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
           >
             मोबाइल नंबर + OTP से लॉगिन करें
           </button>
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-semibold">या तुरंत डेमो चुनें</span></div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <button
-              onClick={() => loginAsDemoUser('customer')}
-              className="p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-2xl text-left cursor-pointer transition"
-            >
-              <div className="font-extrabold text-amber-900">👤 कस्टमर खाता</div>
-              <div className="text-[11px] text-amber-700 mt-0.5">सेव प्रोडक्ट्स व पोस्ट्स देखें</div>
-            </button>
-            <button
-              onClick={() => loginAsDemoUser('shopkeeper')}
-              className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-2xl text-left cursor-pointer transition"
-            >
-              <div className="font-extrabold text-emerald-900">🏪 दुकानदार खाता</div>
-              <div className="text-[11px] text-emerald-700 mt-0.5">दुकान व पोस्ट स्टेटस देखें</div>
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -168,37 +146,6 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
           >
             <LogOut size={14} />
             <span>लॉगआउट</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Role Switch Banner */}
-      <div className="bg-slate-100/90 rounded-2xl p-2.5 flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-600 pl-1">स्विच व्यू (Switch Role View):</span>
-        <div className="flex space-x-1.5">
-          <button
-            onClick={() => loginAsDemoUser('customer')}
-            className={`px-3 py-1 rounded-xl font-bold cursor-pointer transition ${
-              role === 'customer' ? 'bg-amber-600 text-white' : 'bg-white text-slate-700'
-            }`}
-          >
-            कस्टमर व्यू
-          </button>
-          <button
-            onClick={() => loginAsDemoUser('shopkeeper')}
-            className={`px-3 py-1 rounded-xl font-bold cursor-pointer transition ${
-              role === 'shopkeeper' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700'
-            }`}
-          >
-            दुकानदार व्यू
-          </button>
-          <button
-            onClick={() => loginAsDemoUser('admin')}
-            className={`px-3 py-1 rounded-xl font-bold cursor-pointer transition ${
-              role === 'admin' ? 'bg-purple-600 text-white' : 'bg-white text-slate-700'
-            }`}
-          >
-            एडमिन व्यू
           </button>
         </div>
       </div>

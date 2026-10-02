@@ -53,6 +53,15 @@ interface AppContextType {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   
+  // Gateway & Custom Role Auth methods
+  isGatewayOpen: boolean;
+  setIsGatewayOpen: (open: boolean) => void;
+  adminPassword: string;
+  enterAsCustomer: () => void;
+  loginShopkeeper: (email: string, pass: string) => Promise<{ success: boolean; message?: string; shop?: Shop }>;
+  loginAdmin: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
+  changeAdminPassword: (newPass: string) => Promise<boolean>;
+
   // Auth methods
   sendOtp: (phone: string) => Promise<{ success: boolean; otp: string }>;
   verifyOtp: (phone: string, otp: string, role?: UserRole, name?: string) => Promise<boolean>;
@@ -93,6 +102,7 @@ interface AppContextType {
   // Notifications
   markNotificationAsRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+  sendAdminNotification: (title: string, message: string, target?: 'all' | 'shopkeeper' | 'customer') => Promise<void>;
 
   // Admin settings & Live Customizer
   updateSystemSettings: (settings: Partial<SystemSettings>) => Promise<void>;
@@ -146,6 +156,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem('rawla_current_user');
     return saved ? JSON.parse(saved) : null;
+  });
+
+  // Role Gateway Entrance state
+  const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(() => {
+    const savedUser = localStorage.getItem('rawla_current_user');
+    const savedRoleSelected = localStorage.getItem('rawla_role_selected');
+    return !savedUser && !savedRoleSelected;
+  });
+
+  // Admin password state (Default: @@112232, configurable)
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    return localStorage.getItem('rawla_admin_pass') || ADMIN_CREDENTIALS.initialPassword;
   });
 
   // Navigation & UI state
@@ -433,9 +455,135 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Enter as Guest Customer without password
+  const enterAsCustomer = () => {
+    localStorage.setItem('rawla_role_selected', 'customer');
+    if (!currentUser || currentUser.role !== 'customer') {
+      const guestCustomer: UserProfile = {
+        uid: 'guest-' + Date.now(),
+        phoneNumber: 'ग़ाहक प्रवेश',
+        role: 'customer',
+        name: 'रावला ग्राहक',
+        savedShopIds: [],
+        savedProductIds: [],
+        savedPostIds: [],
+        createdAt: new Date().toISOString()
+      };
+      setCurrentUser(guestCustomer);
+    }
+    setIsGatewayOpen(false);
+    setActiveTab('home');
+  };
+
+  // Shopkeeper Email + Password Login
+  const loginShopkeeper = async (email: string, pass: string): Promise<{ success: boolean; message?: string; shop?: Shop }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = pass.trim();
+
+    const matchingShop = shops.find(s => 
+      s.email?.trim().toLowerCase() === cleanEmail && 
+      s.password?.trim() === cleanPass
+    );
+
+    if (!matchingShop) {
+      return { 
+        success: false, 
+        message: 'गलत ईमेल या पासवर्ड! कृपया अपनी दुकान की सही ईमेल व पासवर्ड दर्ज करें।' 
+      };
+    }
+
+    if (matchingShop.status === 'blocked') {
+      return { 
+        success: false, 
+        message: 'आपकी दुकान नियमों के उल्लंघन के कारण ब्लॉक (Blocked) कर दी गई है! कृपया सुपर एडमिन से संपर्क करें।' 
+      };
+    }
+
+    const shopkeeperProfile: UserProfile = {
+      uid: matchingShop.ownerUid || 'user-' + matchingShop.id,
+      phoneNumber: matchingShop.mobileNumber,
+      email: matchingShop.email,
+      role: 'shopkeeper',
+      name: matchingShop.ownerName,
+      shopId: matchingShop.id,
+      savedShopIds: [],
+      savedProductIds: [],
+      savedPostIds: [],
+      createdAt: new Date().toISOString()
+    };
+
+    setCurrentUser(shopkeeperProfile);
+    localStorage.setItem('rawla_role_selected', 'shopkeeper');
+    setIsGatewayOpen(false);
+    setActiveTab('shop_dashboard');
+    setSelectedShop(matchingShop);
+
+    return { success: true, shop: matchingShop };
+  };
+
+  // Super Admin Email + Password Login
+  const loginAdmin = async (email: string, pass: string): Promise<{ success: boolean; message?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = pass.trim();
+
+    if (cleanEmail !== ADMIN_CREDENTIALS.email.toLowerCase()) {
+      return { 
+        success: false, 
+        message: `केवल अधिकृत सुपर एडमिन (${ADMIN_CREDENTIALS.email}) ही इस एडमिन पैनल पर लॉगिन कर सकते हैं!` 
+      };
+    }
+
+    if (cleanPass !== adminPassword) {
+      return { 
+        success: false, 
+        message: 'अमान्य एडमिन पासवर्ड! कृपया सही पासवर्ड दर्ज करें (डिफ़ॉल्ट: @@112232)।' 
+      };
+    }
+
+    const adminProfile: UserProfile = {
+      uid: 'admin-super-sonu',
+      phoneNumber: ADMIN_CREDENTIALS.phone,
+      email: ADMIN_CREDENTIALS.email,
+      role: 'admin',
+      name: ADMIN_CREDENTIALS.name,
+      savedShopIds: [],
+      savedProductIds: [],
+      savedPostIds: [],
+      createdAt: new Date().toISOString()
+    };
+
+    setCurrentUser(adminProfile);
+    localStorage.setItem('rawla_role_selected', 'admin');
+    setIsGatewayOpen(false);
+    setActiveTab('admin');
+
+    return { success: true };
+  };
+
+  // Super Admin Change Password
+  const changeAdminPassword = async (newPass: string): Promise<boolean> => {
+    if (!newPass || newPass.trim().length < 4) return false;
+    const cleanPass = newPass.trim();
+    setAdminPassword(cleanPass);
+    localStorage.setItem('rawla_admin_pass', cleanPass);
+    try {
+      await setDoc(doc(db, 'settings', 'admin_security'), {
+        adminEmail: ADMIN_CREDENTIALS.email,
+        adminPassword: cleanPass,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      console.warn('Saved admin pass locally:', e);
+    }
+    return true;
+  };
+
   const logout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('rawla_current_user');
+    localStorage.removeItem('rawla_role_selected');
     fbSignOut(auth).catch(() => {});
+    setIsGatewayOpen(true);
     setActiveTab('home');
   };
 
@@ -712,6 +860,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const sendAdminNotification = async (title: string, message: string, target: 'all' | 'shopkeeper' | 'customer' = 'all') => {
+    const newNotif: AppNotification = {
+      id: 'notif-' + Date.now(),
+      targetUid: target,
+      type: 'system',
+      title,
+      message,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+
+    setNotifications(prev => [newNotif, ...prev]);
+
+    try {
+      await setDoc(doc(db, 'notifications', newNotif.id), newNotif);
+    } catch (e) {
+      console.warn('Saved admin notification locally:', e);
+    }
+  };
+
   // Settings
   const updateSystemSettings = async (settings: Partial<SystemSettings>) => {
     const updated = { ...systemSettings, ...settings };
@@ -748,6 +916,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedCondition,
         searchQuery,
         setSearchQuery,
+        isGatewayOpen,
+        setIsGatewayOpen,
+        adminPassword,
+        enterAsCustomer,
+        loginShopkeeper,
+        loginAdmin,
+        changeAdminPassword,
         sendOtp,
         verifyOtp,
         loginAsDemoUser,
@@ -777,6 +952,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPostSaved,
         markNotificationAsRead,
         markAllNotificationsRead,
+        sendAdminNotification,
         updateSystemSettings,
         isCustomizerOpen,
         setIsCustomizerOpen,

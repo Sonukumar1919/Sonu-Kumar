@@ -23,12 +23,16 @@ import {
   ToggleLeft, 
   ToggleRight,
   Sparkles,
-  Layers
+  Layers,
+  KeyRound,
+  Lock,
+  Mail,
+  Edit3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
 import { Shop, ShopStatus } from '../types';
-import { SHOP_CATEGORIES, RAWLA_AREAS } from '../data/constants';
+import { SHOP_CATEGORIES, RAWLA_AREAS, ADMIN_CREDENTIALS } from '../data/constants';
 
 interface AdminPanelProps {
   onSelectShop: (shop: Shop) => void;
@@ -48,15 +52,64 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
     deletePost,
     togglePostStatus,
     systemSettings,
-    updateSystemSettings 
+    updateSystemSettings,
+    adminPassword,
+    changeAdminPassword,
+    setIsCustomizerOpen,
+    setInlineEditMode,
+    inlineEditMode,
+    sendAdminNotification
   } = useApp();
 
   const [activeMenu, setActiveMenu] = useState<
-    'dashboard' | 'shop_requests' | 'active_shops' | 'blocked_shops' | 'users' | 'products' | 'posts' | 'categories' | 'reports' | 'settings'
+    'dashboard' | 'shop_requests' | 'active_shops' | 'blocked_shops' | 'users' | 'products' | 'posts' | 'categories' | 'reports' | 'settings' | 'security' | 'notifications_send'
   >('dashboard');
 
   const [selectedShopModal, setSelectedShopModal] = useState<Shop | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Notification Broadcast State
+  const [notifTarget, setNotifTarget] = useState<'all' | 'shopkeeper' | 'customer'>('all');
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifMessage, setNotifMessage] = useState('');
+  const [notifSentMsg, setNotifSentMsg] = useState('');
+
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNotifSentMsg('');
+    if (!notifTitle || !notifMessage) {
+      alert('कृपया शीर्षक और संदेश दोनों भरें।');
+      return;
+    }
+    await sendAdminNotification(notifTitle, notifMessage, notifTarget);
+    setNotifSentMsg('✅ नोटिफिकेशन सफलतापूर्वक सभी चुने गए उपयोगकर्ताओं को भेज दिया गया है!');
+    setNotifTitle('');
+    setNotifMessage('');
+    confetti({ particleCount: 60, spread: 70 });
+  };
+
+  // Password change state
+  const [newPassword, setNewPassword] = useState('');
+  const [passSuccessMsg, setPassSuccessMsg] = useState('');
+  const [passErrorMsg, setPassErrorMsg] = useState('');
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassSuccessMsg('');
+    setPassErrorMsg('');
+    if (!newPassword || newPassword.trim().length < 4) {
+      setPassErrorMsg('पासवर्ड कम से कम 4 अक्षरों का होना चाहिए!');
+      return;
+    }
+    const ok = await changeAdminPassword(newPassword.trim());
+    if (ok) {
+      setPassSuccessMsg('✅ एडमिन पासवर्ड सफलतापूर्वक बदल दिया गया है!');
+      setNewPassword('');
+      confetti({ particleCount: 50, spread: 60 });
+    } else {
+      setPassErrorMsg('पासवर्ड बदलने में समस्या आई!');
+    }
+  };
 
   // Stats calculation
   const totalShops = shops.length;
@@ -114,7 +167,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setIsCustomizerOpen(true)}
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+          >
+            <Sparkles size={16} />
+            <span>लाइव साइट एडिट करें (CMS Live Customizer)</span>
+          </button>
+
           {pendingShops.length > 0 && (
             <button
               onClick={() => setActiveMenu('shop_requests')}
@@ -233,6 +294,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
             }`}
           >
             <span className="flex items-center"><SettingsIcon size={16} className="mr-2" /> Settings (सेटिंग्स)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMenu('notifications_send')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              activeMenu === 'notifications_send' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            <span className="flex items-center"><Megaphone size={16} className="mr-2 text-orange-600" /> Send Notification (सूचना भेजें)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMenu('security')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              activeMenu === 'security' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            <span className="flex items-center"><KeyRound size={16} className="mr-2 text-amber-600" /> Admin Security (पासवर्ड)</span>
           </button>
         </div>
 
@@ -643,6 +722,181 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
                     </span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* View: Admin Broadcast Notifications */}
+          {activeMenu === 'notifications_send' && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-6">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                  <Megaphone size={20} className="text-orange-600" />
+                  <span>एडमिन नोटिफिकेशन ब्रॉडकास्ट (Send Live Notification)</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  सुपर एडमिन यहाँ से दुकानदारों व ग्राहकों के लिए सीधे लाइव ब्रॉडकास्ट नोटिफिकेशन भेज सकते हैं।
+                </p>
+              </div>
+
+              <form onSubmit={handleSendNotification} className="max-w-xl space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    लक्ष्य समूह (Target Audience) *
+                  </label>
+                  <select
+                    value={notifTarget}
+                    onChange={(e) => setNotifTarget(e.target.value as 'all' | 'shopkeeper' | 'customer')}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="all">📢 सभी को भेजें (All Users, Customers & Shopkeepers)</option>
+                    <option value="shopkeeper">🏪 केवल दुकानदारों के लिए (Shopkeepers Only)</option>
+                    <option value="customer">👤 केवल ग्राहकों के लिए (Customers Only)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    सूचना का शीर्षक (Notification Title) *
+                  </label>
+                  <input
+                    type="text"
+                    value={notifTitle}
+                    onChange={(e) => setNotifTitle(e.target.value)}
+                    placeholder="उदा. 📢 मंडी बंद की विशेष सूचना / डिस्काउंट ऑफर अपडेट"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    सूचना का विस्तृत संदेश (Notification Message) *
+                  </label>
+                  <textarea
+                    value={notifMessage}
+                    onChange={(e) => setNotifMessage(e.target.value)}
+                    rows={4}
+                    placeholder="सभी दुकानदारों व ग्राहकों के लिए संदेश यहाँ लिखें..."
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                {notifSentMsg && (
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center space-x-2">
+                    <CheckCircle size={16} className="text-emerald-600 shrink-0" />
+                    <span>{notifSentMsg}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 hover:from-orange-700 hover:to-amber-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
+                >
+                  <Megaphone size={16} />
+                  <span>नोटिफिकेशन तुरंत ब्रॉडकास्ट करें (Send Notification)</span>
+                </button>
+              </form>
+
+              <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl text-xs text-amber-900 space-y-1">
+                <div className="font-bold">💡 कैसे काम करता है:</div>
+                <div>• आपके द्वारा भेजा गया मैसेज तुरंत सभी ग्राहकों व दुकानदारों के घंटी (Bell 🔔) आइकॉन में दिखेगा।</div>
+                <div>• आवश्यक सूचनाएं व त्यौहार डिस्काउंट अलर्ट यहाँ से सेकंडों में भेजें।</div>
+              </div>
+            </div>
+          )}
+
+          {/* View: Admin Security & Password Change */}
+          {activeMenu === 'security' && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-6">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                    <KeyRound size={20} className="text-amber-600" />
+                    <span>सुपर एडमिन सुरक्षा एवं पासवर्ड (Admin Security)</span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    यहाँ से आप सुपर एडमिन का पासवर्ड बदल सकते हैं। ईमेल स्थाई रूप से तय है।
+                  </p>
+                </div>
+                <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">
+                  🔒 Restricted Access
+                </span>
+              </div>
+
+              <form onSubmit={handleUpdatePassword} className="max-w-md space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    सुपर एडमिन ईमेल (Permanently Set / Locked)
+                  </label>
+                  <div className="relative flex items-center">
+                    <Mail size={16} className="absolute left-3.5 text-amber-600" />
+                    <input
+                      type="email"
+                      value={ADMIN_CREDENTIALS.email}
+                      readOnly
+                      disabled
+                      className="w-full pl-10 pr-10 py-3 bg-slate-100 border border-slate-300 rounded-xl text-sm font-extrabold text-slate-700 cursor-not-allowed"
+                    />
+                    <Lock size={16} className="absolute right-3.5 text-slate-400" />
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    सुरक्षा नियमों के अनुसार सुपर एडमिन का ईमेल परिवर्तन योग्य नहीं है (केवल पासवर्ड बदला जा सकता है)।
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    वर्तमान एडमिन पासवर्ड
+                  </label>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm font-bold text-slate-800 tracking-wider">
+                    {adminPassword}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    नया एडमिन पासवर्ड दर्ज करें (New Admin Password) *
+                  </label>
+                  <div className="relative flex items-center">
+                    <KeyRound size={16} className="absolute left-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="उदा. MySecretPass#2026"
+                      minLength={4}
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+
+                {passSuccessMsg && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800">
+                    {passSuccessMsg}
+                  </div>
+                )}
+
+                {passErrorMsg && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-800">
+                    {passErrorMsg}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-700 hover:to-orange-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition cursor-pointer"
+                >
+                  नया एडमिन पासवर्ड सहेजें (Save Password)
+                </button>
+              </form>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 space-y-1">
+                <div className="font-bold text-slate-800">💡 सुपर एडमिन पॉवर गाइड:</div>
+                <div>• केवल <strong>{ADMIN_CREDENTIALS.email}</strong> ही इस पासवर्ड का उपयोग करके सुपर एडमिन के रूप में प्रवेश कर सकते हैं।</div>
+                <div>• एडमिन के पास live website customizer, दुकान स्वीकृति/ब्लॉक तथा सभी कैटलॉग सामग्री नियंत्रित करने का पूर्ण अधिकार है।</div>
               </div>
             </div>
           )}

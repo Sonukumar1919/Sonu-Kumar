@@ -23,6 +23,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { NotificationsModal } from './components/NotificationsModal';
 import { Footer } from './components/Footer';
 import { SiteCustomizerModal } from './components/SiteCustomizerModal';
+import { RoleGatewayPage } from './components/RoleGatewayPage';
 import { Shop } from './types';
 import { Store, ShoppingBag, Megaphone, PlusCircle, ArrowRight, ShieldCheck, Sliders, Edit3, Sparkles } from 'lucide-react';
 
@@ -39,13 +40,19 @@ const MainLayout: React.FC = () => {
     setIsCustomizerOpen,
     inlineEditMode,
     setInlineEditMode,
-    openCustomizerForField
+    openCustomizerForField,
+    isGatewayOpen
   } = useApp();
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isRegisterShopOpen, setIsRegisterShopOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [topPostIds, setTopPostIds] = useState<string[]>([]);
+
+  // Show creative role entrance gateway page first if no role chosen or gateway requested
+  if (isGatewayOpen) {
+    return <RoleGatewayPage />;
+  }
 
   const handleSelectShop = (shop: Shop) => {
     setSelectedShop(shop);
@@ -228,37 +235,6 @@ const MainLayout: React.FC = () => {
         isOpen={isCustomizerOpen}
         onClose={() => setIsCustomizerOpen(false)}
       />
-
-      {/* Floating Superuser Live Tool (Visible for Super Admin) */}
-      {role === 'admin' && (
-        <div className="fixed bottom-16 right-3 sm:right-6 z-45 bg-slate-950/95 backdrop-blur-md text-white p-1.5 sm:px-3 sm:py-2 rounded-2xl shadow-2xl border border-amber-500/50 flex items-center space-x-2 animate-in slide-in-from-bottom-2">
-          <div className="flex items-center space-x-1.5 pl-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-[11px] font-black text-amber-400 uppercase hidden sm:inline">Superuser</span>
-          </div>
-
-          <button
-            onClick={() => setInlineEditMode(!inlineEditMode)}
-            className={`px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer ${
-              inlineEditMode 
-                ? 'bg-amber-400 text-slate-950 shadow-xs' 
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-            }`}
-            title="स्क्रीन पर सभी बटनों और टाइटल्स पर तुरंत एडिट पेंसिल दिखाएं"
-          >
-            <span>{inlineEditMode ? '⚡ एडिट मोड: चालू' : '✏️ इन-पेज एडिट'}</span>
-          </button>
-
-          <button
-            onClick={() => setIsCustomizerOpen(true)}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 px-3 py-1 rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1 cursor-pointer"
-            title="लाइव नाम व बटन एडिटर खोलें"
-          >
-            <Sliders size={13} />
-            <span>नाम/बटन बदलें</span>
-          </button>
-        </div>
-      )}
 
       {/* Footer */}
       <Footer

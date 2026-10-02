@@ -187,39 +187,6 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, on
             </form>
           )}
 
-          {/* Quick Demo Personas Shortcut */}
-          <div className="pt-4 border-t border-slate-100">
-            <div className="text-[11px] font-bold text-slate-400 uppercase text-center mb-2">
-              या एक क्लिक में डेमो खाता चुनें
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => { loginAsDemoUser('customer'); onClose(); }}
-                className="p-2 bg-slate-50 hover:bg-amber-50 border border-slate-200 rounded-xl text-center text-xs transition cursor-pointer"
-              >
-                <div className="font-bold text-slate-800">कस्टमर</div>
-                <div className="text-[10px] text-slate-500">रमेश</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => { loginAsDemoUser('shopkeeper'); onClose(); }}
-                className="p-2 bg-slate-50 hover:bg-amber-50 border border-slate-200 rounded-xl text-center text-xs transition cursor-pointer"
-              >
-                <div className="font-bold text-slate-800">दुकानदार</div>
-                <div className="text-[10px] text-slate-500">शर्मा मोबाइल</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => { loginAsDemoUser('admin'); onClose(); }}
-                className="p-2 bg-slate-50 hover:bg-amber-50 border border-slate-200 rounded-xl text-center text-xs transition cursor-pointer"
-              >
-                <div className="font-bold text-slate-800">Super Admin</div>
-                <div className="text-[10px] text-slate-500">सोनू कुमार</div>
-              </button>
-            </div>
-          </div>
-
           {/* Google Sign In option */}
           <div className="pt-2">
             <button

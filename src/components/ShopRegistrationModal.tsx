@@ -45,6 +45,8 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
   // Shop Form state
   const [ownerName, setOwnerName] = useState(currentUser?.name || '');
   const [shopName, setShopName] = useState('');
+  const [shopEmail, setShopEmail] = useState('');
+  const [shopPassword, setShopPassword] = useState('');
   const [category, setCategory] = useState(SHOP_CATEGORIES[0].label);
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [address, setAddress] = useState('');
@@ -92,8 +94,8 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
   // Submit Shop Details
   const handleSubmitShop = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !ownerName || !address) {
-      alert('कृपया सभी आवश्यक जानकारी भरें');
+    if (!shopName || !ownerName || !address || !shopEmail || !shopPassword) {
+      alert('कृपया ईमेल और पासवर्ड सहित सभी आवश्यक जानकारी भरें');
       return;
     }
 
@@ -103,6 +105,8 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
         ownerUid: currentUser?.uid || 'user-' + phone,
         ownerName,
         shopName,
+        email: shopEmail.trim().toLowerCase(),
+        password: shopPassword.trim(),
         category,
         mobileNumber: phone,
         whatsappNumber: whatsappNumber || phone,
@@ -332,6 +336,47 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
                 />
+              </div>
+            </div>
+
+            {/* Shop Credentials Box */}
+            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center space-x-2 text-amber-900 text-xs font-extrabold uppercase">
+                <KeyRound size={16} className="text-amber-600" />
+                <span>दुकान लॉगिन क्रेडेंशियल सेट करें (Shop Login Details) *</span>
+              </div>
+              <p className="text-[11px] text-amber-800">
+                इसी ईमेल व पासवर्ड से आप भविष्य में अपनी दुकान के पैनल पर लॉगिन करके प्रोडक्ट्स जोड़ सकेंगे और दुकान मैनेज कर सकेंगे।
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    दुकान की Gmail/ईमेल (Shop Email) *
+                  </label>
+                  <input
+                    type="email"
+                    value={shopEmail}
+                    onChange={(e) => setShopEmail(e.target.value)}
+                    placeholder="sharma@gmail.com"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    दुकान का पासवर्ड (Password) *
+                  </label>
+                  <input
+                    type="password"
+                    value={shopPassword}
+                    onChange={(e) => setShopPassword(e.target.value)}
+                    placeholder="••••••••"
+                    minLength={4}
+                    required
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                  />
+                </div>
               </div>
             </div>
 

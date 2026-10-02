@@ -41,13 +41,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     notifications,
     systemSettings,
     logout,
-    loginAsDemoUser,
     setSelectedShop,
-    openCustomizerForField
+    openCustomizerForField,
+    setIsGatewayOpen
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [personaMenuOpen, setPersonaMenuOpen] = useState(false);
 
   const unreadNotifications = notifications.filter(n => !n.read).length;
 
@@ -68,8 +67,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Demo persona switcher & Super Admin Quick Customizer */}
+        {/* Role Gateway Status Badge & Super Admin Quick Customizer */}
         <div className="flex items-center space-x-2 shrink-0">
+          {role === 'admin' && (
+            <button
+              onClick={() => setIsGatewayOpen(true)}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-3 py-0.5 rounded-full text-xs font-black transition flex items-center space-x-1 cursor-pointer shadow-xs"
+              title="मुख्य गेटवे / भूमिका बदलें"
+            >
+              <span>🔄 भूमिका बदलें (Gateway)</span>
+            </button>
+          )}
+
+          <span className="bg-black/20 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white">
+            {role === 'admin' ? '🛡️ सुपर एडमिन' : role === 'shopkeeper' ? '🏪 दुकानदार' : '👤 ग्राहक'}
+          </span>
+
           {role === 'admin' && onOpenCustomizer && (
             <button
               onClick={onOpenCustomizer}
@@ -79,69 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>✏️ नाम/बटन बदलें</span>
             </button>
           )}
-
-          <div className="relative">
-            <button 
-              onClick={() => setPersonaMenuOpen(!personaMenuOpen)}
-              className="flex items-center space-x-1.5 bg-black/20 hover:bg-black/30 px-2.5 py-0.5 rounded-full text-xs text-amber-100 transition cursor-pointer"
-              title="स्विच करें: कस्टमर / दुकानदार / एडमिन"
-            >
-              <span className="font-semibold text-white">
-                {currentUser ? `${currentUser.name} (${role})` : 'डेमो रोल चुनें'}
-              </span>
-              <ChevronDown size={13} />
-            </button>
-
-          {personaMenuOpen && (
-            <div className="absolute right-0 mt-1.5 w-64 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="px-3 py-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase">
-                तुरंत रोल स्विच करें (Quick Demo Switcher)
-              </div>
-              <button 
-                onClick={() => { loginAsDemoUser('customer'); setPersonaMenuOpen(false); }}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-amber-50 flex items-center justify-between transition cursor-pointer"
-              >
-                <div>
-                  <div className="font-medium text-slate-900">👤 Ramesh Kumar (कस्टमर)</div>
-                  <div className="text-[11px] text-slate-500">दुकानें, सामान व पोस्ट सेव करें</div>
-                </div>
-                {role === 'customer' && <span className="text-amber-600 text-xs">✓ सक्रिय</span>}
-              </button>
-              <button 
-                onClick={() => { loginAsDemoUser('shopkeeper'); setPersonaMenuOpen(false); }}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-amber-50 flex items-center justify-between transition cursor-pointer"
-              >
-                <div>
-                  <div className="font-medium text-slate-900">🏪 Rahul Sharma (दुकानदार)</div>
-                  <div className="text-[11px] text-slate-500">शर्मा मोबाइल डैशबोर्ड, प्रोडक्ट्स, पोस्ट्स</div>
-                </div>
-                {role === 'shopkeeper' && <span className="text-amber-600 text-xs">✓ सक्रिय</span>}
-              </button>
-              <button 
-                onClick={() => { loginAsDemoUser('admin'); setPersonaMenuOpen(false); }}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-amber-50 flex items-center justify-between transition cursor-pointer"
-              >
-                <div>
-                  <div className="font-medium text-slate-900">👨‍💼 Sonu Kumar (Super Admin)</div>
-                  <div className="text-[11px] text-slate-500">शॉप अप्रूवल, ब्लॉक/अनब्लॉक, पोस्ट्स कंट्रोल</div>
-                </div>
-                {role === 'admin' && <span className="text-amber-600 text-xs">✓ सक्रिय</span>}
-              </button>
-              {currentUser && (
-                <div className="border-t border-slate-100 pt-1 mt-1">
-                  <button 
-                    onClick={() => { logout(); setPersonaMenuOpen(false); }}
-                    className="w-full text-left px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center space-x-1.5 cursor-pointer"
-                  >
-                    <LogOut size={13} />
-                    <span>लॉगआउट (Logout)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
-      </div>
       </div>
 
       {/* Main Navbar */}

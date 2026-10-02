@@ -36,6 +36,8 @@ export const DEFAULT_SHOPS: Shop[] = [
     category: 'Mobile & Electronics',
     mobileNumber: '9829012345',
     whatsappNumber: '9829012345',
+    email: 'sharma@rawlamandi.com',
+    password: 'sharma123',
     address: 'Shop No. 14, Main Market, Rawla Mandi',
     area: 'Main Market (मुख्य बाज़ार)',
     photoUrl: 'https://images.unsplash.com/photo-1596558450255-7c0b7be9d56a?auto=format&fit=crop&w=800&q=80',
@@ -58,6 +60,8 @@ export const DEFAULT_SHOPS: Shop[] = [
     category: 'कपड़े',
     mobileNumber: '9414598765',
     whatsappNumber: '9414598765',
+    email: 'verma@rawlamandi.com',
+    password: 'verma123',
     address: 'Near Old Bus Stand, Rawla Mandi',
     area: 'Bus Stand (बस स्टैंड)',
     photoUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
@@ -449,6 +453,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
 
 export const ADMIN_CREDENTIALS = {
   email: 'sonukumar106163@gmail.com',
+  initialPassword: '@@112232',
   name: 'Sonu Kumar (Super Admin)',
   phone: '9876543210'
 };
@@ -504,6 +509,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   customLabels: {},
   // Super Admin Header Announcement & Box Size / Layout Controls
   headerCustomNotice: '📢 रावला मंडी में आपका स्वागत है! मुख्य बाज़ार की दुकानें एवं ताज़ा डिस्काउंट्स देखें।',
+  homepageAdminHeading: '🌾 रावला मंडी डिजिटल बाज़ार — मुख्य समाचार व आधिकारिक घोषणाएं',
   boxSizeScale: 'normal' as const,
   cardBorderRadius: 'rounded-2xl' as const,
   themePrimaryColor: 'amber' as const

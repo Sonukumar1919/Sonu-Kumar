@@ -23,6 +23,8 @@ export interface Shop {
   category: string;
   mobileNumber: string;
   whatsappNumber: string;
+  email?: string;
+  password?: string;
   address: string;
   area: string;
   photoUrl: string;
@@ -140,6 +142,7 @@ export interface SystemSettings {
   customLabels?: Record<string, string>;
   // Super Admin Header Announcement & Box Size / Layout Controls
   headerCustomNotice?: string;
+  homepageAdminHeading?: string;
   boxSizeScale?: 'compact' | 'normal' | 'spacious' | 'large';
   cardBorderRadius?: 'rounded-xl' | 'rounded-2xl' | 'rounded-3xl' | 'rounded-none';
   themePrimaryColor?: 'amber' | 'emerald' | 'indigo' | 'rose' | 'purple';
