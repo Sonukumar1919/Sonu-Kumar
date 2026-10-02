@@ -158,12 +158,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Role Gateway Entrance state
-  const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(() => {
-    const savedUser = localStorage.getItem('rawla_current_user');
-    const savedRoleSelected = localStorage.getItem('rawla_role_selected');
-    return !savedUser && !savedRoleSelected;
-  });
+  // Role Gateway Entrance state (Always start on Gateway page for everyone)
+  const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(true);
 
   // Admin password state (Default: @@112232, configurable)
   const [adminPassword, setAdminPassword] = useState<string>(() => {
@@ -529,14 +525,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (cleanEmail !== ADMIN_CREDENTIALS.email.toLowerCase()) {
       return { 
         success: false, 
-        message: `केवल अधिकृत सुपर एडमिन (${ADMIN_CREDENTIALS.email}) ही इस एडमिन पैनल पर लॉगिन कर सकते हैं!` 
+        message: 'अमान्य एडमिन ईमेल या पहुँच अस्वीकृत!' 
       };
     }
 
     if (cleanPass !== adminPassword) {
       return { 
         success: false, 
-        message: 'अमान्य एडमिन पासवर्ड! कृपया सही पासवर्ड दर्ज करें (डिफ़ॉल्ट: @@112232)।' 
+        message: 'अमान्य एडमिन पासवर्ड! कृपया सही पासवर्ड दर्ज करें।' 
       };
     }
 

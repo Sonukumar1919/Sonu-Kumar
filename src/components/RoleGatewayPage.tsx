@@ -46,8 +46,8 @@ export const RoleGatewayPage: React.FC = () => {
   const [shopLoading, setShopLoading] = useState(false);
   const [showShopPass, setShowShopPass] = useState(false);
 
-  // Admin Login State (Fixed email: sonukumar106163@gmail.com)
-  const adminEmail = 'sonukumar106163@gmail.com';
+  // Admin Login State
+  const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
   const [adminLoading, setAdminLoading] = useState(false);
@@ -84,16 +84,17 @@ export const RoleGatewayPage: React.FC = () => {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError('');
-    if (!adminPassword) {
-      setAdminError('कृपया एडमिन पासवर्ड दर्ज करें।');
+    if (!adminEmailInput || !adminPassword) {
+      setAdminError('कृपया एडमिन ईमेल और पासवर्ड दोनों दर्ज करें।');
       return;
     }
     setAdminLoading(true);
-    const res = await loginAdmin(adminEmail, adminPassword);
+    const res = await loginAdmin(adminEmailInput, adminPassword);
     setAdminLoading(false);
 
     if (!res.success) {
-      setAdminError(res.message || 'अमान्य एडमिन क्रेडेंशियल!');
+      setAdminError(res.message || 'अमान्य एडमिन क्रेडेंशियल! पहुँच अस्वीकृत।');
+      setAdminPassword(''); // clear password on invalid attempt
     }
   };
 
@@ -460,22 +461,19 @@ export const RoleGatewayPage: React.FC = () => {
               <form onSubmit={handleAdminLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-                    अधिकृत सुपर एडमिन Gmail (Locked)
+                    सुपर एडमिन Gmail (Super Admin Email) *
                   </label>
                   <div className="relative flex items-center">
                     <Mail size={16} className="absolute left-3.5 text-amber-400" />
                     <input
                       type="email"
-                      value={adminEmail}
-                      readOnly
-                      disabled
-                      className="w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-amber-500/30 rounded-xl text-sm font-extrabold text-amber-300 cursor-not-allowed opacity-90"
+                      value={adminEmailInput}
+                      onChange={(e) => setAdminEmailInput(e.target.value)}
+                      placeholder="admin@gmail.com"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
-                    <Lock size={14} className="absolute right-3.5 text-slate-400" />
                   </div>
-                  <p className="text-[10px] text-amber-300/80 mt-1">
-                    केवल {adminEmail} ही सुपर एडमिन के रूप में लॉगिन कर सकते हैं।
-                  </p>
                 </div>
 
                 <div>
