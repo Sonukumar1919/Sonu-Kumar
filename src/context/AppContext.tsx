@@ -198,6 +198,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [products]);
 
   useEffect(() => {
+    localStorage.setItem('rawla_shops', JSON.stringify(shops));
+  }, [shops]);
+
+  useEffect(() => {
+    localStorage.setItem('rawla_products', JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
     localStorage.setItem('rawla_posts', JSON.stringify(posts));
   }, [posts]);
 
@@ -231,15 +239,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const list: Shop[] = [];
           snapshot.forEach((d) => list.push({ ...(d.data() as Shop), id: d.id }));
           setShops(prev => {
-            // merge
             const map = new Map<string, Shop>();
-            prev.forEach(s => map.set(s.id, s));
+            // Load remote list first
             list.forEach(s => map.set(s.id, s));
+            // Preserve local state overrides (such as newly approved active status)
+            prev.forEach(s => {
+              const existing = map.get(s.id);
+              if (!existing) {
+                map.set(s.id, s);
+              } else if (s.status === 'active' && existing.status === 'pending') {
+                map.set(s.id, { ...existing, status: 'active' });
+              }
+            });
             return Array.from(map.values());
           });
         }
       }, (error) => {
-        // Handled silently for offline or un-permissioned initial states
         console.warn('Firestore shops stream notice:', error.message);
       });
 
@@ -250,8 +265,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           snapshot.forEach((d) => list.push({ ...(d.data() as Product), id: d.id }));
           setProducts(prev => {
             const map = new Map<string, Product>();
-            prev.forEach(p => map.set(p.id, p));
             list.forEach(p => map.set(p.id, p));
+            prev.forEach(p => {
+              if (!map.has(p.id)) map.set(p.id, p);
+            });
             return Array.from(map.values());
           });
         }
@@ -648,6 +665,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     await updateShop(shopId, { status: 'active' });
 
+    // Ensure all products of this shop are also activated
+    setProducts(prev => prev.map(p => p.shopId === shopId ? { ...p, status: 'active' as const } : p));
+
     // Send notification to shopkeeper
     const notif: AppNotification = {
       id: 'notif-' + Date.now(),
@@ -718,6 +738,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newProduct: Product = {
       ...productData,
       id: newId,
+      status: 'active',
       createdAt: new Date().toISOString()
     };
     setProducts(prev => [newProduct, ...prev]);

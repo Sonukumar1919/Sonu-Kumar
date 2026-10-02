@@ -57,6 +57,7 @@ export interface Product {
   stockStatus: 'in_stock' | 'out_of_stock';
   condition?: ProductCondition;
   productCode?: string;
+  status?: 'active' | 'hidden';
   createdAt: string;
 }
 
