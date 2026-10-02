@@ -4,14 +4,11 @@ import {
   Store, 
   Phone, 
   CheckCircle, 
-  ShieldCheck, 
-  ArrowRight, 
-  MapPin, 
   Clock, 
-  Image as ImageIcon, 
   Sparkles,
   KeyRound,
-  RotateCcw
+  Building2,
+  MapPin
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
@@ -29,20 +26,13 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
   onClose,
   onSuccess 
 }) => {
-  const { sendOtp, verifyOtp, registerShop, currentUser } = useApp();
+  const { registerShop, currentUser } = useApp();
 
-  // Step 1: Mobile verification, Step 2: Shop details, Step 3: Success pending state
-  const [step, setStep] = useState<1 | 2 | 3>(currentUser?.phoneNumber ? 2 : 1);
+  // Step 2: Shop details (Step 1 Mobile OTP step removed per user request), Step 3: Success pending state
+  const [step, setStep] = useState<2 | 3>(2);
   
-  // Mobile verification state
-  const [phone, setPhone] = useState(currentUser?.phoneNumber || '');
-  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
-  const [otpInput, setOtpInput] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-
   // Shop Form state
+  const [phone, setPhone] = useState(currentUser?.phoneNumber || '');
   const [ownerName, setOwnerName] = useState(currentUser?.name || '');
   const [shopName, setShopName] = useState('');
   const [shopEmail, setShopEmail] = useState('');
@@ -62,47 +52,18 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Send OTP
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setOtpError('');
-    if (phone.replace(/\D/g, '').length < 10) {
-      setOtpError('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें');
-      return;
-    }
-    const res = await sendOtp(phone);
-    setGeneratedOtp(res.otp);
-    setOtpSent(true);
-  };
-
-  // Verify OTP
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setOtpError('');
-    setIsVerifying(true);
-    const valid = await verifyOtp(phone, otpInput, 'shopkeeper', ownerName || 'दुकानदार');
-    setIsVerifying(false);
-
-    if (valid) {
-      if (!whatsappNumber) setWhatsappNumber(phone);
-      setStep(2);
-    } else {
-      setOtpError('अमान्य OTP! कृपया स्क्रीन पर दिए गए OTP को दर्ज करें (या 123456)।');
-    }
-  };
-
   // Submit Shop Details
   const handleSubmitShop = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !ownerName || !address || !shopEmail || !shopPassword) {
-      alert('कृपया ईमेल और पासवर्ड सहित सभी आवश्यक जानकारी भरें');
+    if (!shopName || !ownerName || !phone || !address || !shopEmail || !shopPassword) {
+      alert('कृपया मोबाइल, ईमेल और पासवर्ड सहित सभी आवश्यक जानकारी भरें।');
       return;
     }
 
     setIsSubmitting(true);
     try {
       const shopId = await registerShop({
-        ownerUid: currentUser?.uid || 'user-' + phone,
+        ownerUid: currentUser?.uid || 'user-' + phone.replace(/\D/g, ''),
         ownerName,
         shopName,
         email: shopEmail.trim().toLowerCase(),
@@ -136,18 +97,18 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="relative bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-amber-100 my-8 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="relative bg-white text-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-amber-200 my-8 animate-in fade-in zoom-in-95">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white p-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
               <Store size={22} />
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold font-display">अपनी दुकान जोड़ें (Shop Registration)</h2>
-              <p className="text-xs text-amber-100">रावला मंडी में अपनी दुकान को डिजिटल बनाएं</p>
+              <p className="text-xs text-amber-100">रावला मंडी डिजिटल बाज़ार में दुकान पंजीकृत करें</p>
             </div>
           </div>
           <button
@@ -159,159 +120,40 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
         </div>
 
         {/* Stepper Indicator */}
-        <div className="bg-amber-50/70 border-b border-amber-100 px-6 py-3 flex items-center justify-between text-xs font-semibold">
-          <div className={`flex items-center space-x-1.5 ${step >= 1 ? 'text-amber-800' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${
-              step > 1 ? 'bg-emerald-600 text-white' : step === 1 ? 'bg-amber-600 text-white' : 'bg-slate-200'
+        <div className="bg-amber-50/90 border-b border-amber-200 px-6 py-3 flex items-center justify-between text-xs font-bold text-slate-700">
+          <div className={`flex items-center space-x-2 ${step === 2 ? 'text-amber-900' : 'text-slate-400'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
+              step === 2 ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'
             }`}>
-              {step > 1 ? '✓' : '1'}
+              {step > 2 ? '✓' : '1'}
             </span>
-            <span>मोबाइल सत्यापन (OTP)</span>
+            <span>दुकान की विस्तृत जानकारी (Shop Details)</span>
           </div>
 
-          <div className="w-8 h-0.5 bg-slate-200"></div>
+          <div className="w-12 h-0.5 bg-amber-200"></div>
 
-          <div className={`flex items-center space-x-1.5 ${step >= 2 ? 'text-amber-800' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${
-              step > 2 ? 'bg-emerald-600 text-white' : step === 2 ? 'bg-amber-600 text-white' : 'bg-slate-200'
+          <div className={`flex items-center space-x-2 ${step === 3 ? 'text-amber-900' : 'text-slate-400'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
+              step === 3 ? 'bg-amber-600 text-white' : 'bg-slate-300 text-slate-600'
             }`}>
-              {step > 2 ? '✓' : '2'}
+              2
             </span>
-            <span>दुकान विवरण (Shop Info)</span>
-          </div>
-
-          <div className="w-8 h-0.5 bg-slate-200"></div>
-
-          <div className={`flex items-center space-x-1.5 ${step === 3 ? 'text-amber-800' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${
-              step === 3 ? 'bg-amber-600 text-white' : 'bg-slate-200'
-            }`}>
-              3
-            </span>
-            <span>स्वीकृति (Pending)</span>
+            <span>स्वीकृति हेतु सबमिट (Approval Pending)</span>
           </div>
         </div>
-
-        {/* Step 1: Mobile OTP Verification */}
-        {step === 1 && (
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="text-center max-w-sm mx-auto space-y-2">
-              <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-                <Phone size={28} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">दुकानदार का मोबाइल नंबर</h3>
-              <p className="text-xs text-slate-500">
-                दुकानदार के मोबाइल पर 6 अंकों का OTP भेजा जाएगा जिससे आपकी पहचान सत्यापित होगी।
-              </p>
-            </div>
-
-            {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="max-w-sm mx-auto space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
-                    मोबाइल नंबर (10 Digit Number)
-                  </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3 text-slate-400 font-semibold text-sm">+91</span>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="9829012345"
-                      maxLength={10}
-                      required
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
-                    />
-                  </div>
-                </div>
-
-                {otpError && (
-                  <p className="text-xs font-semibold text-rose-600">{otpError}</p>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white py-3 rounded-xl text-sm font-bold shadow-md transition cursor-pointer"
-                >
-                  Send OTP (ओटीपी भेजें)
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="max-w-sm mx-auto space-y-4">
-                {/* Visual OTP notification simulation for frictionless demo */}
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center space-y-1">
-                  <div className="flex items-center justify-center space-x-1 text-emerald-800 text-xs font-bold">
-                    <KeyRound size={14} />
-                    <span>सिम्युलेटेड SMS OTP प्राप्त हुआ:</span>
-                  </div>
-                  <div className="text-2xl font-black tracking-widest text-emerald-900 font-mono">
-                    {generatedOtp}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOtpInput(generatedOtp || '123456')}
-                    className="text-[11px] text-emerald-700 font-bold underline cursor-pointer"
-                  >
-                    यहाँ क्लिक करके तुरंत भरें (Auto-fill)
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
-                    6 डिजिट OTP दर्ज करें
-                  </label>
-                  <input
-                    type="text"
-                    value={otpInput}
-                    onChange={(e) => setOtpInput(e.target.value)}
-                    placeholder="123456"
-                    maxLength={6}
-                    required
-                    className="w-full text-center tracking-widest py-3 bg-slate-50 border border-slate-300 rounded-xl text-lg font-bold font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
-                  />
-                </div>
-
-                {otpError && (
-                  <p className="text-xs font-semibold text-rose-600">{otpError}</p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isVerifying}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3 rounded-xl text-sm font-bold shadow-md transition cursor-pointer"
-                >
-                  {isVerifying ? 'सत्यापित किया जा रहा है...' : 'Verify & Continue (सत्यापित करें)'}
-                </button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setOtpSent(false)}
-                    className="text-xs text-slate-500 hover:text-slate-800 flex items-center justify-center space-x-1 mx-auto"
-                  >
-                    <RotateCcw size={12} />
-                    <span>नंबर बदलें / पुनः भेजें</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
 
         {/* Step 2: Shop Details Form */}
         {step === 2 && (
           <form onSubmit={handleSubmitShop} className="p-6 sm:p-8 space-y-4 max-h-[75vh] overflow-y-auto">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2 flex items-center justify-between text-xs text-emerald-900">
-              <span className="flex items-center font-semibold">
-                <CheckCircle size={15} className="text-emerald-600 mr-1.5" />
-                मोबाइल: +91 {phone} (सत्यापित ✅)
-              </span>
-              <span className="font-bold">Step 2 of 2</span>
+            
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3 flex items-center space-x-2 text-xs text-emerald-950 font-semibold">
+              <Sparkles size={16} className="text-emerald-600 shrink-0" />
+              <span>अपनी दुकान का विवरण भरें। सबमिट करने पर आपकी दुकान तुरंत रजिस्टर हो जाएगी।</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   दुकानदार का नाम (Owner Name) *
                 </label>
                 <input
@@ -320,12 +162,12 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   onChange={(e) => setOwnerName(e.target.value)}
                   placeholder="उदा. राहुल शर्मा"
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   दुकान का नाम (Shop Name) *
                 </label>
                 <input
@@ -334,23 +176,23 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   onChange={(e) => setShopName(e.target.value)}
                   placeholder="उदा. शर्मा मोबाइल & इलेक्ट्रॉनिक्स"
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
             </div>
 
             {/* Shop Credentials Box */}
-            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center space-x-2 text-amber-900 text-xs font-extrabold uppercase">
+            <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center space-x-2 text-amber-950 text-xs font-black uppercase">
                 <KeyRound size={16} className="text-amber-600" />
-                <span>दुकान लॉगिन क्रेडेंशियल सेट करें (Shop Login Details) *</span>
+                <span>दुकान लॉगिन क्रेडेंशियल (Shop Login Details) *</span>
               </div>
-              <p className="text-[11px] text-amber-800">
-                इसी ईमेल व पासवर्ड से आप भविष्य में अपनी दुकान के पैनल पर लॉगिन करके प्रोडक्ट्स जोड़ सकेंगे और दुकान मैनेज कर सकेंगे।
+              <p className="text-[11px] text-amber-900 font-medium">
+                इसी ईमेल व पासवर्ड से आप अपनी दुकान के डैशबोर्ड पर लॉगिन करके प्रोडक्ट्स जोड़ और प्रबंधित कर सकेंगे।
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                     दुकान की Gmail/ईमेल (Shop Email) *
                   </label>
                   <input
@@ -359,12 +201,12 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                     onChange={(e) => setShopEmail(e.target.value)}
                     placeholder="sharma@gmail.com"
                     required
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                     दुकान का पासवर्ड (Password) *
                   </label>
                   <input
@@ -374,7 +216,7 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                     placeholder="••••••••"
                     minLength={4}
                     required
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                   />
                 </div>
               </div>
@@ -382,31 +224,31 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   दुकान की श्रेणी (Category) *
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 >
                   {SHOP_CATEGORIES.map(c => (
-                    <option key={c.id} value={c.label}>{c.label}</option>
+                    <option key={c.id} value={c.label} className="text-slate-900">{c.label}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   रावला मंडी क्षेत्र (Area / Location) *
                 </label>
                 <select
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 >
                   {RAWLA_AREAS.filter(a => a !== 'सभी क्षेत्र (All Areas)').map(a => (
-                    <option key={a} value={a}>{a}</option>
+                    <option key={a} value={a} className="text-slate-900">{a}</option>
                   ))}
                 </select>
               </div>
@@ -414,20 +256,22 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   दुकान का संपर्क नंबर (Mobile Number) *
                 </label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  placeholder="9829012345"
+                  maxLength={10}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   WhatsApp नंबर *
                 </label>
                 <input
@@ -435,14 +279,15 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   value={whatsappNumber}
                   onChange={(e) => setWhatsappNumber(e.target.value)}
                   placeholder="9829012345"
+                  maxLength={10}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                 दुकान का पूरा पता (Shop Address) *
               </label>
               <input
@@ -451,13 +296,13 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="उदा. दुकान नं. 14, मुख्य बाज़ार, बस स्टैंड के पास, रावला मंडी"
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   खुलने का समय (Opening Time)
                 </label>
                 <input
@@ -465,12 +310,12 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   value={openingTime}
                   onChange={(e) => setOpeningTime(e.target.value)}
                   placeholder="09:00 AM"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                   बंद होने का समय (Closing Time)
                 </label>
                 <input
@@ -478,7 +323,7 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                   value={closingTime}
                   onChange={(e) => setClosingTime(e.target.value)}
                   placeholder="08:30 PM"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
                 />
               </div>
             </div>
@@ -511,7 +356,7 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                 दुकान का विवरण (Shop Description)
               </label>
               <textarea
@@ -519,12 +364,12 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="आपकी दुकान पर क्या-क्या सामान व सुविधा उपलब्ध है, संक्षेप में लिखें..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
                 Google Map Location Link (वैकल्पिक)
               </label>
               <input
@@ -532,7 +377,7 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
                 value={googleMapLocation}
                 onChange={(e) => setGoogleMapLocation(e.target.value)}
                 placeholder="https://maps.google.com/?q=..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
               />
             </div>
 
@@ -540,9 +385,9 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg transition cursor-pointer"
+                className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white py-3.5 rounded-xl text-sm font-extrabold shadow-lg transition cursor-pointer"
               >
-                {isSubmitting ? 'अनुरोध सबमिट हो रहा है...' : 'Submit for Approval (स्वीकृति हेतु सबमिट करें)'}
+                {isSubmitting ? 'अनुरोध सबमिट हो रहा है...' : 'Submit Shop Registration (दुकान सबमिट करें)'}
               </button>
             </div>
           </form>
@@ -559,32 +404,31 @@ export const ShopRegistrationModal: React.FC<ShopRegistrationModalProps> = ({
               <h3 className="text-xl font-extrabold text-slate-900">
                 दुकान पंजीकरण अनुरोध प्राप्त हुआ!
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
                 बधाई हो! आपकी दुकान <strong>"{shopName}"</strong> का पंजीकरण अनुरोध सफलतापूर्वक सबमिट हो चुका है।
               </p>
             </div>
 
-            {/* Status breakdown box as requested in brief */}
             <div className="max-w-sm mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">मोबाइल सत्यापन:</span>
-                <span className="font-bold text-emerald-700">✅ Verified</span>
+                <span className="text-slate-600 font-medium">दुकानदार:</span>
+                <span className="font-bold text-slate-900">{ownerName}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">शॉप अप्रूवल स्थिति:</span>
-                <span className="font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded">⏳ Pending Approval</span>
+                <span className="text-slate-600 font-medium">मोबाइल:</span>
+                <span className="font-bold text-slate-900">+91 {phone}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">दुकानदार:</span>
-                <span className="font-semibold text-slate-800">{ownerName}</span>
+                <span className="text-slate-600 font-medium">शॉप अप्रूवल स्थिति:</span>
+                <span className="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">⏳ Pending Approval</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">स्थान:</span>
-                <span className="font-semibold text-slate-800">{area}</span>
+                <span className="text-slate-600 font-medium">स्थान:</span>
+                <span className="font-bold text-slate-900">{area}</span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
+            <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
               Super Admin द्वारा सत्यापन के बाद आपकी दुकान <strong>Active 🟢</strong> हो जाएगी और इसका डिजिटल चैनल RAWLA MANDI पर लाइव दिखेगा।
             </p>
 
