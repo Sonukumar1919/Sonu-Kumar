@@ -225,93 +225,114 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [currentUser]);
 
-  // Sync with Firestore safely on start
+  // Sync with Firestore safely on start & auto-seed default dataset for all devices
   useEffect(() => {
     let unsubscribeShops: (() => void) | undefined;
     let unsubscribeProducts: (() => void) | undefined;
     let unsubscribePosts: (() => void) | undefined;
     let unsubscribeSettings: (() => void) | undefined;
 
-    try {
-      const shopsCol = collection(db, 'shops');
-      unsubscribeShops = onSnapshot(shopsCol, (snapshot) => {
-        if (!snapshot.empty) {
-          const list: Shop[] = [];
-          snapshot.forEach((d) => list.push({ ...(d.data() as Shop), id: d.id }));
-          setShops(prev => {
-            const map = new Map<string, Shop>();
-            // Load remote list first
-            list.forEach(s => map.set(s.id, s));
-            // Preserve local state overrides (such as newly approved active status)
-            prev.forEach(s => {
-              const existing = map.get(s.id);
-              if (!existing) {
-                map.set(s.id, s);
-              } else if (s.status === 'active' && existing.status === 'pending') {
-                map.set(s.id, { ...existing, status: 'active' });
-              }
+    const initializeFirestoreSync = async () => {
+      try {
+        // Ensure anonymous auth for Firestore connection
+        if (!auth.currentUser) {
+          try {
+            await signInAnonymously(auth);
+          } catch (e) {
+            console.warn('Anonymous sign-in note:', e);
+          }
+        }
+
+        // 1. Shops live stream & auto-seed
+        const shopsCol = collection(db, 'shops');
+        unsubscribeShops = onSnapshot(shopsCol, async (snapshot) => {
+          if (snapshot.empty) {
+            // Seed initial shops to Firestore so all devices have shared dataset
+            for (const s of DEFAULT_SHOPS) {
+              try { await setDoc(doc(db, 'shops', s.id), s); } catch (e) {}
+            }
+          } else {
+            const list: Shop[] = [];
+            snapshot.forEach((d) => list.push({ ...(d.data() as Shop), id: d.id }));
+            setShops(prev => {
+              const map = new Map<string, Shop>();
+              // Load default shops first
+              DEFAULT_SHOPS.forEach(s => map.set(s.id, s));
+              // Merge remote live shops from Firestore
+              list.forEach(s => map.set(s.id, s));
+              // Keep local active overrides if present
+              prev.forEach(s => {
+                const existing = map.get(s.id);
+                if (!existing) {
+                  map.set(s.id, s);
+                } else if (s.status === 'active' && existing.status === 'pending') {
+                  map.set(s.id, { ...existing, status: 'active' });
+                }
+              });
+              return Array.from(map.values());
             });
-            return Array.from(map.values());
-          });
-        }
-      }, (error) => {
-        console.warn('Firestore shops stream notice:', error.message);
-      });
-
-      const prodCol = collection(db, 'products');
-      unsubscribeProducts = onSnapshot(prodCol, (snapshot) => {
-        if (!snapshot.empty) {
-          const list: Product[] = [];
-          snapshot.forEach((d) => list.push({ ...(d.data() as Product), id: d.id }));
-          setProducts(prev => {
-            const map = new Map<string, Product>();
-            list.forEach(p => map.set(p.id, p));
-            prev.forEach(p => {
-              if (!map.has(p.id)) map.set(p.id, p);
-            });
-            return Array.from(map.values());
-          });
-        }
-      }, (error) => {
-        console.warn('Firestore products stream notice:', error.message);
-      });
-
-      const postCol = collection(db, 'posts');
-      unsubscribePosts = onSnapshot(postCol, (snapshot) => {
-        if (!snapshot.empty) {
-          const list: ShopPost[] = [];
-          snapshot.forEach((d) => list.push({ ...(d.data() as ShopPost), id: d.id }));
-          setPosts(prev => {
-            const map = new Map<string, ShopPost>();
-            prev.forEach(p => map.set(p.id, p));
-            list.forEach(p => map.set(p.id, p));
-            return Array.from(map.values());
-          });
-        }
-      }, (error) => {
-        console.warn('Firestore posts stream notice:', error.message);
-      });
-
-      // Settings live stream
-      const settingsDocRef = doc(db, 'settings', 'global');
-      unsubscribeSettings = onSnapshot(settingsDocRef, (snap) => {
-        if (snap.exists()) {
-          const remoteSettings = snap.data() as Partial<SystemSettings>;
-          setSystemSettings(prev => ({ ...DEFAULT_SETTINGS, ...prev, ...remoteSettings }));
-        }
-      }, (error) => {
-        console.warn('Firestore settings stream notice:', error.message);
-      });
-
-      // Anonymous sign-in for seamless real-time syncing
-      if (!auth.currentUser) {
-        signInAnonymously(auth).catch((e) => {
-          console.warn('Anonymous auth stream note:', e);
+          }
         });
+
+        // 2. Products live stream & auto-seed
+        const prodCol = collection(db, 'products');
+        unsubscribeProducts = onSnapshot(prodCol, async (snapshot) => {
+          if (snapshot.empty) {
+            for (const p of DEFAULT_PRODUCTS) {
+              try { await setDoc(doc(db, 'products', p.id), p); } catch (e) {}
+            }
+          } else {
+            const list: Product[] = [];
+            snapshot.forEach((d) => list.push({ ...(d.data() as Product), id: d.id }));
+            setProducts(prev => {
+              const map = new Map<string, Product>();
+              DEFAULT_PRODUCTS.forEach(p => map.set(p.id, p));
+              list.forEach(p => map.set(p.id, p));
+              prev.forEach(p => {
+                if (!map.has(p.id)) map.set(p.id, p);
+              });
+              return Array.from(map.values());
+            });
+          }
+        });
+
+        // 3. Posts live stream & auto-seed
+        const postCol = collection(db, 'posts');
+        unsubscribePosts = onSnapshot(postCol, async (snapshot) => {
+          if (snapshot.empty) {
+            for (const po of DEFAULT_POSTS) {
+              try { await setDoc(doc(db, 'posts', po.id), po); } catch (e) {}
+            }
+          } else {
+            const list: ShopPost[] = [];
+            snapshot.forEach((d) => list.push({ ...(d.data() as ShopPost), id: d.id }));
+            setPosts(prev => {
+              const map = new Map<string, ShopPost>();
+              DEFAULT_POSTS.forEach(po => map.set(po.id, po));
+              list.forEach(po => map.set(po.id, po));
+              prev.forEach(po => {
+                if (!map.has(po.id)) map.set(po.id, po);
+              });
+              return Array.from(map.values());
+            });
+          }
+        });
+
+        // 4. Settings live stream
+        const settingsDocRef = doc(db, 'settings', 'global');
+        unsubscribeSettings = onSnapshot(settingsDocRef, (snap) => {
+          if (snap.exists()) {
+            const remoteSettings = snap.data() as Partial<SystemSettings>;
+            setSystemSettings(prev => ({ ...DEFAULT_SETTINGS, ...prev, ...remoteSettings }));
+          }
+        });
+
+      } catch (err) {
+        console.warn('Firestore initialization notice:', err);
       }
-    } catch (err) {
-      console.warn('Firestore sync initial note:', err);
-    }
+    };
+
+    initializeFirestoreSync();
 
     return () => {
       if (unsubscribeShops) unsubscribeShops();
