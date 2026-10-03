@@ -68,17 +68,14 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col animate-theme-flow text-slate-900 font-sans transition-all duration-1000">
-      {/* Top Navbar */}
+    <div className="min-h-screen flex flex-col bg-colorful-mesh text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
+      {/* Sleek Compact Top Navbar */}
       <Navbar
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenRegisterShop={() => setIsRegisterShopOpen(true)}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
       />
-
-      {/* Breaking / Notice Ticker */}
-      <BannerTicker />
 
       {/* Main Content Router */}
       <main className="flex-1 pb-20">

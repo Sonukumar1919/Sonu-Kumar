@@ -59,12 +59,12 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="relative bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-amber-100 my-8 animate-in fade-in zoom-in-95">
+      <div className="relative animate-login-slow-morph-light dark:animate-login-slow-morph rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-amber-200/50 dark:border-slate-800 my-8 animate-in fade-in zoom-in-95 transition-all">
         
-        {/* Header */}
-        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-5 flex items-center justify-between">
+        {/* Header with subtle slow changing gradient */}
+        <div className="animate-login-slow-morph text-white p-5 flex items-center justify-between border-b border-white/10 shadow-sm">
           <div className="flex items-center space-x-2">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
+            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
               <User size={20} />
             </div>
             <div>
@@ -80,8 +80,8 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({ isOpen, on
           </button>
         </div>
 
-        {/* Form Body */}
-        <div className="p-6 space-y-5">
+        {/* Form Body with glass effect on top of slow morphing theme */}
+        <div className="p-6 space-y-5 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md">
           {!otpSent ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>

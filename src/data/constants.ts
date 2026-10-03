@@ -356,6 +356,86 @@ export const DEFAULT_PRODUCTS: Product[] = [
     condition: 'used',
     productCode: 'USED-SHOES-02',
     createdAt: '2025-02-09T10:00:00Z'
+  },
+  {
+    id: 'prod-10',
+    shopId: 'shop-kisan-hardware',
+    shopName: 'Rawla Kisan Hardware & Paints',
+    ownerUid: 'user-bishnoi-103',
+    name: 'ट्रैक्टर ट्रॉली जैक व कल्टीवेटर हैरो स्पेयर पार्ट्स',
+    category: 'Hardware',
+    price: 4500,
+    discountPrice: 3850,
+    description: 'महिंद्रा, स्वराज व सोनालिका ट्रैक्टर के लिए उच्च क्वालिटी हाइड्रोलिक जैक व कल्टीवेटर फाली। मजबूत व टिकाऊ स्टील।',
+    photoUrl: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'new',
+    productCode: 'AGRO-TRAC-PART',
+    createdAt: '2025-02-11T08:30:00Z'
+  },
+  {
+    id: 'prod-11',
+    shopId: 'shop-royal-footwear',
+    shopName: 'Royal Footwear & Sports',
+    ownerUid: 'user-soni-106',
+    name: 'कैंपस रनिंग स्पोर्ट्स शूज (हल्के व टिकाऊ)',
+    category: 'जूते',
+    price: 1999,
+    discountPrice: 1299,
+    description: 'एयर कुशन सोल, रनिंग व जिम हेतु सर्वोत्तम। पसीना सोखने वाला ब्रीथेबल कपड़ा। 6 महीने की पेस्टिंग गारंटी।',
+    photoUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'new',
+    productCode: 'CMP-RUN-SHOE',
+    createdAt: '2025-02-12T11:20:00Z'
+  },
+  {
+    id: 'prod-12',
+    shopId: 'shop-goyal-kirana',
+    shopName: 'Goyal Super Kirana Store',
+    ownerUid: 'user-goyal-107',
+    name: 'प्रीमियम कैलिफोर्निया बादाम व काजू कॉम्बो (1 KG)',
+    category: 'किराना',
+    price: 1250,
+    discountPrice: 980,
+    description: 'ताजा कुरकुरा 500g बादाम + 500g काजू कॉम्बो पैक। स्वास्थ्य के लिए अत्यंत लाभकारी। शुद्धता की 100% गारंटी।',
+    photoUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'new',
+    productCode: 'GYL-DRYFRUIT-1KG',
+    createdAt: '2025-02-13T09:15:00Z'
+  },
+  {
+    id: 'prod-13',
+    shopId: 'shop-sharma-mobile',
+    shopName: 'Sharma Mobile & Electronics',
+    ownerUid: 'user-sharma-101',
+    name: '43 इंच 4K अल्ट्रा HD स्मार्ट एंड्रॉयड LED TV',
+    category: 'Mobile & Electronics',
+    price: 28999,
+    discountPrice: 18499,
+    description: 'Dolby Audio, Bezel-less स्क्रीन, वॉइस रिमोट कंट्रोल, यूट्यूब व नेटफ्लिक्स सपोर्ट। 2 साल ऑनसाइट वारंटी।',
+    photoUrl: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'new',
+    productCode: 'SHM-TV-43SMART',
+    createdAt: '2025-02-14T14:45:00Z'
+  },
+  {
+    id: 'prod-14',
+    shopId: 'shop-verma-garments',
+    shopName: 'Verma Garments & Matching Center',
+    ownerUid: 'user-verma-102',
+    name: 'मेंस जोधपुरी सूट व शेरवानी (शादी स्पेशल)',
+    category: 'कपड़े',
+    price: 5500,
+    discountPrice: 3999,
+    description: 'शाही जोधपुरी कट, फाइन फैब्रिक, मैचिंग पायजामा सहित। शादी-विवाह व त्योहारों के लिए रॉयल लुक।',
+    photoUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80',
+    stockStatus: 'in_stock',
+    condition: 'new',
+    productCode: 'VRM-JODH-SUIT',
+    createdAt: '2025-02-15T10:10:00Z'
   }
 ];
 
@@ -375,7 +455,7 @@ export const DEFAULT_POSTS: ShopPost[] = [
     category: 'Mobile & Electronics',
     status: 'active',
     likesCount: 48,
-    createdAt: '2025-02-10T09:30:00Z'
+    createdAt: '2025-02-16T09:30:00Z'
   },
   {
     id: 'post-2',
@@ -392,7 +472,7 @@ export const DEFAULT_POSTS: ShopPost[] = [
     category: 'Restaurant/Food',
     status: 'active',
     likesCount: 62,
-    createdAt: '2025-02-09T08:00:00Z'
+    createdAt: '2025-02-15T08:00:00Z'
   },
   {
     id: 'post-3',
@@ -409,7 +489,7 @@ export const DEFAULT_POSTS: ShopPost[] = [
     category: 'Hardware',
     status: 'active',
     likesCount: 35,
-    createdAt: '2025-02-08T11:00:00Z'
+    createdAt: '2025-02-14T11:00:00Z'
   },
   {
     id: 'post-4',
@@ -426,7 +506,24 @@ export const DEFAULT_POSTS: ShopPost[] = [
     category: 'कपड़े',
     status: 'active',
     likesCount: 77,
-    createdAt: '2025-02-07T16:20:00Z'
+    createdAt: '2025-02-13T16:20:00Z'
+  },
+  {
+    id: 'post-5',
+    shopId: 'shop-goyal-kirana',
+    shopName: 'Goyal Super Kirana Store',
+    shopLogo: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=200&q=80',
+    shopArea: 'Station Road',
+    shopCategory: 'किराना',
+    ownerUid: 'user-goyal-107',
+    title: '🌾 देशी गेहूं, बासमती चावल व सरसों तेल पर थोक भाव छूट',
+    description: 'महीने के पूरे राशन की खरीदारी पर विशेष छूट और रावला मंडी शहर में बिल्कुल फ्री होम डिलीवरी। आज ही फोन या WhatsApp पर ऑर्डर भेजें।',
+    offer: '₹2000+ ऑर्डर पर मुफ्त डिलीवरी',
+    photoUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
+    category: 'किराना',
+    status: 'active',
+    likesCount: 41,
+    createdAt: '2025-02-12T10:15:00Z'
   }
 ];
 
@@ -512,5 +609,18 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   homepageAdminHeading: '🌾 रावला मंडी डिजिटल बाज़ार — मुख्य समाचार व आधिकारिक घोषणाएं',
   boxSizeScale: 'normal' as const,
   cardBorderRadius: 'rounded-2xl' as const,
-  themePrimaryColor: 'amber' as const
+  themePrimaryColor: 'amber' as const,
+  customButtons: [
+    {
+      id: 'btn-kisan-helpline',
+      label: '🌾 किसान व मंडी सहायता',
+      actionType: 'whatsapp',
+      target: '9829111222',
+      position: 'feed',
+      color: 'emerald',
+      icon: 'Phone',
+      enabled: true
+    }
+  ],
+  hiddenButtonKeys: []
 };

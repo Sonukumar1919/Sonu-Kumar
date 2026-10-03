@@ -31,5 +31,10 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read, write: if true;
     }
+
+    // Allow real-time customer and shopkeeper feedbacks & suggestions to superadmin
+    match /feedbacks/{feedbackId} {
+      allow read, write: if true;
+    }
   }
 }

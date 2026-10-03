@@ -18,10 +18,14 @@ import {
   XCircle, 
   LogOut, 
   KeyRound,
-  RotateCcw
+  RotateCcw,
+  Sun,
+  Moon,
+  MessageSquare
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Shop, Product, ShopPost } from '../types';
+import { UserFeedbackModal } from './UserFeedbackModal';
 
 interface UserPortalViewProps {
   onSelectShop: (shop: Shop) => void;
@@ -48,11 +52,14 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
     toggleProductStock,
     deleteProduct,
     deletePost,
-    setActiveTab
+    setActiveTab,
+    themeMode,
+    toggleThemeMode
   } = useApp();
 
   const [customerSubTab, setCustomerSubTab] = useState<'saved_products' | 'saved_shops' | 'saved_posts'>('saved_products');
   const [shopkeeperSubTab, setShopkeeperSubTab] = useState<'posts_status' | 'products' | 'shop_info'>('posts_status');
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   // If user is not logged in, show quick login or demo persona
   if (!currentUser) {
@@ -96,14 +103,14 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 pb-28">
       
       {/* User Header Profile Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div className="flex items-center space-x-3.5">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md">
             {currentUser.name.charAt(0)}
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h2 className="text-xl font-bold text-slate-900 font-display">{currentUser.name}</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">{currentUser.name}</h2>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
                 role === 'admin' 
                   ? 'bg-purple-100 text-purple-800' 
@@ -114,18 +121,46 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
                 {role === 'admin' ? 'Super Admin' : role === 'shopkeeper' ? 'दुकानदार (Shopkeeper)' : 'ग्राहक (Customer)'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               मोबाइल: +91 {currentUser.phoneNumber}
             </p>
           </div>
         </div>
 
         {/* Quick action buttons */}
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Dark / Light Theme Toggle */}
+          <button
+            onClick={toggleThemeMode}
+            className="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2 rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs"
+            title={themeMode === 'dark' ? 'लाइट थीम चालू करें' : 'डार्क थीम चालू करें'}
+          >
+            {themeMode === 'dark' ? (
+              <>
+                <Sun size={15} className="text-amber-400" />
+                <span>Light Theme</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-indigo-600" />
+                <span>Dark Theme</span>
+              </>
+            )}
+          </button>
+
+          {/* Feedback to Creator / Superadmin */}
+          <button
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="flex items-center space-x-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800 px-3 py-2 rounded-xl transition cursor-pointer shadow-2xs"
+          >
+            <MessageSquare size={14} className="text-amber-600 dark:text-amber-400" />
+            <span>अपनी राय दें</span>
+          </button>
+
           {role !== 'shopkeeper' && (
             <button
               onClick={onOpenRegisterShop}
-              className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2 rounded-xl transition"
+              className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 px-3.5 py-2 rounded-xl transition cursor-pointer"
             >
               + अपनी दुकान जोड़ें
             </button>
@@ -134,7 +169,7 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
           {role === 'admin' && (
             <button
               onClick={() => setActiveTab('admin')}
-              className="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3.5 py-2 rounded-xl transition"
+              className="text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 border border-purple-200 px-3.5 py-2 rounded-xl transition cursor-pointer"
             >
               एडमिन डैशबोर्ड &gt;
             </button>
@@ -142,7 +177,7 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
 
           <button
             onClick={logout}
-            className="flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3.5 py-2 rounded-xl transition"
+            className="flex items-center space-x-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 border border-rose-200 dark:border-rose-900 px-3.5 py-2 rounded-xl transition cursor-pointer"
           >
             <LogOut size={14} />
             <span>लॉगआउट</span>
@@ -443,6 +478,13 @@ export const UserPortalView: React.FC<UserPortalViewProps> = ({
 
         </div>
       )}
+
+      {/* User Feedback to Superadmin Modal */}
+      <UserFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        defaultRole={role === 'shopkeeper' ? 'shopkeeper' : 'customer'}
+      />
 
     </div>
   );

@@ -146,14 +146,14 @@ export const InstagramHomeFeed: React.FC<InstagramHomeFeedProps> = ({
       {/* ============================================================== */}
       {/* 1. सूचना (INSTAGRAM STORIES / STATUS BAR AT TOP) */}
       {/* ============================================================== */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 p-3 shadow-xs">
-        <div className="flex items-center justify-between px-1 mb-2">
+      <div className="bg-white/95 dark:bg-slate-900/90 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-3.5 shadow-sm backdrop-blur-md transition-colors">
+        <div className="flex items-center justify-between px-1 mb-2.5">
           <div className="flex items-center space-x-1.5">
-            <span className="text-sm font-black text-slate-900 tracking-tight font-display flex items-center space-x-1">
+            <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight font-display flex items-center space-x-1">
               <span>📢 सूचना व स्टेटस (Daily Updates)</span>
             </span>
           </div>
-          <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800/60 px-2.5 py-0.5 rounded-full">
             लाइव अपडेट
           </span>
         </div>
@@ -172,13 +172,13 @@ export const InstagramHomeFeed: React.FC<InstagramHomeFeedProps> = ({
             >
               {/* Glowing Story Ring */}
               <div className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full p-[2.5px] bg-gradient-to-tr ${item.gradient} transition-transform transform group-hover:scale-105 active:scale-95 shadow-sm`}>
-                <div className="w-full h-full bg-white rounded-full p-1 flex items-center justify-center">
+                <div className="w-full h-full bg-white dark:bg-slate-900 rounded-full p-1 flex items-center justify-center">
                   <div className={`w-full h-full rounded-full bg-gradient-to-tr ${item.gradient} text-white flex items-center justify-center text-xl sm:text-2xl shadow-inner`}>
                     {item.icon}
                   </div>
                 </div>
               </div>
-              <span className="text-[11px] font-bold text-slate-800 tracking-tight text-center max-w-[70px] truncate leading-tight">
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 tracking-tight text-center max-w-[70px] truncate leading-tight">
                 {item.title}
               </span>
             </button>
@@ -192,7 +192,7 @@ export const InstagramHomeFeed: React.FC<InstagramHomeFeedProps> = ({
               className="flex flex-col items-center space-y-1.5 shrink-0 group cursor-pointer focus:outline-hidden"
             >
               <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 transition-transform transform group-hover:scale-105 active:scale-95 shadow-sm">
-                <div className="w-full h-full bg-white rounded-full p-1 flex items-center justify-center">
+                <div className="w-full h-full bg-white dark:bg-slate-900 rounded-full p-1 flex items-center justify-center">
                   <img
                     src={shop.logoUrl || shop.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=200&q=80'}
                     alt={shop.shopName}
@@ -200,7 +200,7 @@ export const InstagramHomeFeed: React.FC<InstagramHomeFeedProps> = ({
                   />
                 </div>
               </div>
-              <span className="text-[11px] font-bold text-slate-800 tracking-tight text-center max-w-[70px] truncate leading-tight">
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 tracking-tight text-center max-w-[70px] truncate leading-tight">
                 {shop.shopName}
               </span>
             </button>
@@ -371,10 +371,10 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
     : 0;
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+    <div className="bg-white/95 dark:bg-slate-900/95 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md backdrop-blur-md">
       
       {/* 1. Header (Shop Profile Avatar & Name) */}
-      <div className="p-3 sm:p-4 flex items-center justify-between border-b border-slate-100">
+      <div className="p-3 sm:p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
         <div 
           onClick={() => shop && onSelectShop(shop)}
           className="flex items-center space-x-2.5 cursor-pointer group"
@@ -384,17 +384,17 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
             <img
               src={shop?.logoUrl || shop?.photoUrl || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=200&q=80'}
               alt={product.shopName}
-              className="w-full h-full rounded-full object-cover bg-white"
+              className="w-full h-full rounded-full object-cover bg-white dark:bg-slate-800"
             />
           </div>
           <div>
             <div className="flex items-center space-x-1">
-              <span className="font-extrabold text-sm text-slate-900 group-hover:text-amber-600 transition truncate max-w-[200px]">
+              <span className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-amber-500 transition truncate max-w-[200px]">
                 {product.shopName}
               </span>
-              <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">
+            <p className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">
               {shop?.area || 'रावला मंडी'}
             </p>
           </div>
@@ -409,10 +409,10 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
           )}
           <button
             onClick={onCall}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
             title="दुकान पर कॉल करें"
           >
-            <Phone size={14} className="text-blue-600" />
+            <Phone size={14} className="text-blue-500" />
           </button>
         </div>
       </div>
@@ -518,7 +518,7 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
             <button
               onClick={onToggleLike}
               className={`flex items-center space-x-1 text-xs font-bold transition cursor-pointer ${
-                isLiked ? 'text-rose-600' : 'text-slate-700 hover:text-rose-600'
+                isLiked ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300 hover:text-rose-600'
               }`}
             >
               <Heart size={20} className={isLiked ? 'fill-rose-600' : ''} />
@@ -528,7 +528,7 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
             {/* Share */}
             <button
               onClick={onShare}
-              className="flex items-center space-x-1 text-xs font-bold text-slate-700 hover:text-slate-900 transition cursor-pointer"
+              className="flex items-center space-x-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
             >
               <Share2 size={18} />
               <span>शेयर</span>
@@ -538,21 +538,21 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
             <button
               onClick={onToggleSave}
               className={`flex items-center space-x-1 text-xs font-bold transition cursor-pointer ${
-                isSaved ? 'text-amber-600' : 'text-slate-700 hover:text-amber-600'
+                isSaved ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300 hover:text-amber-600'
               }`}
             >
-              <Bookmark size={18} className={isSaved ? 'fill-amber-600' : ''} />
+              <Bookmark size={18} className={isSaved ? 'fill-amber-600 dark:fill-amber-400' : ''} />
               <span>{isSaved ? 'सेव है' : 'सेव'}</span>
             </button>
           </div>
 
           {/* Price Tag */}
           <div className="text-right">
-            <span className="text-lg sm:text-xl font-black text-slate-900">
+            <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
               ₹{(product.discountPrice || product.price).toLocaleString('en-IN')}
             </span>
             {product.discountPrice && (
-              <span className="text-xs text-slate-400 line-through ml-1.5">
+              <span className="text-xs text-slate-400 dark:text-slate-400 line-through ml-1.5">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
             )}
@@ -561,24 +561,24 @@ const InstagramProductCard: React.FC<InstagramProductCardProps> = ({
 
         {/* 5. Product Title & Description (No time shown) */}
         <div onClick={onOpenDetail} className="cursor-pointer space-y-1">
-          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 hover:text-amber-600 transition leading-snug">
+          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition leading-snug">
             {product.name}
           </h4>
-          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
-          <span className="text-[11px] font-semibold text-amber-700 hover:underline inline-block pt-0.5">
+          <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline inline-block pt-0.5">
             पूरा विवरण व फोटो देखें &gt;
           </span>
         </div>
 
         {/* 6. Direct Order Buttons (Call & WhatsApp) */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
           <button
             onClick={onCall}
-            className="flex items-center justify-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer"
+            className="flex items-center justify-center space-x-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer"
           >
-            <Phone size={14} className="text-blue-600" />
+            <Phone size={14} className="text-blue-500" />
             <span>कॉल करें</span>
           </button>
           <button

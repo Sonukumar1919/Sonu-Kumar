@@ -22,7 +22,9 @@ import {
   AppNotification, 
   SystemSettings, 
   UserRole,
-  ShopStatus 
+  ShopStatus,
+  UserFeedback,
+  SiteCustomButton 
 } from '../types';
 import { 
   DEFAULT_SHOPS, 
@@ -103,7 +105,7 @@ interface AppContextType {
   // Notifications
   markNotificationAsRead: (id: string) => void;
   markAllNotificationsRead: () => void;
-  sendAdminNotification: (title: string, message: string, target?: 'all' | 'shopkeeper' | 'customer') => Promise<void>;
+  sendAdminNotification: (title: string, message: string, target?: 'all' | 'shopkeeper' | 'customer' | 'admin') => Promise<void>;
 
   // Admin settings & Live Customizer
   updateSystemSettings: (settings: Partial<SystemSettings>) => Promise<void>;
@@ -115,6 +117,22 @@ interface AppContextType {
   setSelectedFieldForEdit: (field: string | null) => void;
   customizerCategory: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout';
   openCustomizerForField: (category?: 'branding' | 'buttons' | 'headings' | 'pages' | 'banner' | 'custom' | 'layout', fieldKey?: string) => void;
+
+  // Super Admin Button Manager
+  toggleButtonVisibility: (buttonKey: string) => Promise<void>;
+  addCustomButton: (button: Omit<SiteCustomButton, 'id'>) => Promise<void>;
+  updateCustomButton: (id: string, data: Partial<SiteCustomButton>) => Promise<void>;
+  deleteCustomButton: (id: string) => Promise<void>;
+
+  // Feedback to Creator / Superadmin
+  feedbacks: UserFeedback[];
+  submitFeedback: (feedback: Omit<UserFeedback, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+  deleteFeedback: (id: string) => Promise<void>;
+  markFeedbackReviewed: (id: string) => Promise<void>;
+
+  // Dark / Light Theme
+  themeMode: 'light' | 'dark';
+  toggleThemeMode: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -153,22 +171,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return DEFAULT_SETTINGS;
   });
 
-  // Current session user
+  // Current session user with persistent login retention
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('rawla_current_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('rawla_current_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
-  // Role Gateway Entrance state (Always start on Gateway page for everyone)
-  const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(true);
+  // Role Gateway Entrance state - Remember login and avoid kicking active users out
+  const [isGatewayOpen, setIsGatewayOpen] = useState<boolean>(() => {
+    try {
+      const savedUser = localStorage.getItem('rawla_current_user');
+      const gatewayPassed = localStorage.getItem('rawla_gateway_passed');
+      if (savedUser && gatewayPassed === 'true') {
+        return false;
+      }
+    } catch (e) {}
+    return true;
+  });
 
   // Admin password state (Default: @@112232, configurable)
   const [adminPassword, setAdminPassword] = useState<string>(() => {
     return localStorage.getItem('rawla_admin_pass') || ADMIN_CREDENTIALS.initialPassword;
   });
 
-  // Navigation & UI state
-  const [activeTab, setActiveTab] = useState<string>('home');
+  // Navigation & UI state with persistent role-aware initial tab
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      const savedUserStr = localStorage.getItem('rawla_current_user');
+      if (savedUserStr) {
+        const u = JSON.parse(savedUserStr);
+        if (u.role === 'shopkeeper') return 'shop_dashboard';
+        if (u.role === 'admin') return 'admin';
+      }
+    } catch (e) {}
+    return 'home';
+  });
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [selectedArea, setSelectedArea] = useState<string>('सभी क्षेत्र (All Areas)');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -189,15 +230,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsCustomizerOpen(true);
   };
 
+  // Feedback to Creator / Superadmin
+  const [feedbacks, setFeedbacks] = useState<UserFeedback[]>(() => {
+    const saved = localStorage.getItem('rawla_feedbacks');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Dark / Light Theme state
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('rawla_theme_mode');
+    return saved === 'dark' ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rawla_theme_mode', themeMode);
+    if (themeMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [themeMode]);
+
+  const toggleThemeMode = () => {
+    setThemeMode(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Persist to local storage
-  useEffect(() => {
-    localStorage.setItem('rawla_shops', JSON.stringify(shops));
-  }, [shops]);
-
-  useEffect(() => {
-    localStorage.setItem('rawla_products', JSON.stringify(products));
-  }, [products]);
-
   useEffect(() => {
     localStorage.setItem('rawla_shops', JSON.stringify(shops));
   }, [shops]);
@@ -209,6 +267,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('rawla_posts', JSON.stringify(posts));
   }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem('rawla_feedbacks', JSON.stringify(feedbacks));
+  }, [feedbacks]);
 
   useEffect(() => {
     localStorage.setItem('rawla_notifications', JSON.stringify(notifications));
@@ -232,6 +294,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let unsubscribeProducts: (() => void) | undefined;
     let unsubscribePosts: (() => void) | undefined;
     let unsubscribeSettings: (() => void) | undefined;
+    let unsubscribeFeedbacks: (() => void) | undefined;
 
     const initializeFirestoreSync = async () => {
       try {
@@ -292,10 +355,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               const data = d.data() as Product;
               list.push({ ...data, id: d.id });
             });
-            // Strictly sort by newest first (newest product right at the top)
-            list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-            setProducts(list);
-            localStorage.setItem('rawla_products', JSON.stringify(list));
+            // Merge remote snapshot with local state so newly added items are never dropped
+            setProducts(prev => {
+              const map = new Map<string, Product>();
+              list.forEach(p => map.set(p.id, p));
+              // Retain any pending locally created products
+              prev.forEach(p => {
+                if (!map.has(p.id)) {
+                  map.set(p.id, p);
+                }
+              });
+              const merged = Array.from(map.values());
+              // Strictly sort by newest first (newest product right at the top)
+              merged.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+              localStorage.setItem('rawla_products', JSON.stringify(merged));
+              return merged;
+            });
           }
         }, (error) => {
           console.warn('Firestore products stream notice:', error.message);
@@ -332,6 +407,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         });
 
+        // 5. Customer & Shopkeeper Feedbacks live stream (for Superadmin)
+        const feedbackCol = collection(db, 'feedbacks');
+        unsubscribeFeedbacks = onSnapshot(feedbackCol, (snap) => {
+          const list: UserFeedback[] = [];
+          snap.forEach(d => {
+            list.push({ ...(d.data() as UserFeedback), id: d.id });
+          });
+          list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          setFeedbacks(list);
+          localStorage.setItem('rawla_feedbacks', JSON.stringify(list));
+        }, (err) => {
+          console.warn('Feedbacks stream note:', err.message);
+        });
+
       } catch (err) {
         console.warn('Firestore initialization notice:', err);
       }
@@ -344,6 +433,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (unsubscribeProducts) unsubscribeProducts();
       if (unsubscribePosts) unsubscribePosts();
       if (unsubscribeSettings) unsubscribeSettings();
+      if (unsubscribeFeedbacks) unsubscribeFeedbacks();
     };
   }, []);
 
@@ -497,10 +587,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Enter as Guest Customer without password
   const enterAsCustomer = () => {
     localStorage.setItem('rawla_role_selected', 'customer');
+    localStorage.setItem('rawla_gateway_passed', 'true');
     if (!currentUser || currentUser.role !== 'customer') {
       const guestCustomer: UserProfile = {
         uid: 'guest-' + Date.now(),
-        phoneNumber: 'ग़ाहक प्रवेश',
+        phoneNumber: 'ग्राहक प्रवेश',
         role: 'customer',
         name: 'रावला ग्राहक',
         savedShopIds: [],
@@ -509,25 +600,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createdAt: new Date().toISOString()
       };
       setCurrentUser(guestCustomer);
+      localStorage.setItem('rawla_current_user', JSON.stringify(guestCustomer));
     }
     setIsGatewayOpen(false);
     setActiveTab('home');
   };
 
-  // Shopkeeper Email + Password Login
+  // Shopkeeper Email or Phone + Password Login with direct Firestore fallback query
   const loginShopkeeper = async (email: string, pass: string): Promise<{ success: boolean; message?: string; shop?: Shop }> => {
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanInput = email.trim().toLowerCase();
+    const cleanPhone = email.replace(/\D/g, '');
     const cleanPass = pass.trim();
 
-    const matchingShop = shops.find(s => 
-      s.email?.trim().toLowerCase() === cleanEmail && 
-      s.password?.trim() === cleanPass
-    );
+    // 1. Check local shops array first
+    let matchingShop = shops.find(s => {
+      const emailMatches = s.email?.trim().toLowerCase() === cleanInput;
+      const phoneMatches = cleanPhone.length >= 10 && s.mobileNumber?.replace(/\D/g, '') === cleanPhone;
+      return (emailMatches || phoneMatches) && s.password?.trim() === cleanPass;
+    });
+
+    // 2. Direct Firestore fallback query if not in local state
+    if (!matchingShop) {
+      try {
+        const qEmail = query(collection(db, 'shops'), where('email', '==', cleanInput));
+        const snapEmail = await getDocs(qEmail);
+        if (!snapEmail.empty) {
+          const shopDoc = snapEmail.docs[0];
+          const data = shopDoc.data() as Shop;
+          if (data.password?.trim() === cleanPass) {
+            matchingShop = { ...data, id: shopDoc.id };
+          }
+        } else if (cleanPhone.length >= 10) {
+          const qPhone = query(collection(db, 'shops'), where('mobileNumber', '==', cleanPhone));
+          const snapPhone = await getDocs(qPhone);
+          if (!snapPhone.empty) {
+            const shopDoc = snapPhone.docs[0];
+            const data = shopDoc.data() as Shop;
+            if (data.password?.trim() === cleanPass) {
+              matchingShop = { ...data, id: shopDoc.id };
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Firestore fallback query during shopkeeper login notice:', err);
+      }
+    }
 
     if (!matchingShop) {
       return { 
         success: false, 
-        message: 'गलत ईमेल या पासवर्ड! कृपया अपनी दुकान की सही ईमेल व पासवर्ड दर्ज करें।' 
+        message: 'गलत ईमेल/मोबाइल या पासवर्ड! कृपया अपनी दुकान की सही जानकारी व पासवर्ड दर्ज करें।' 
       };
     }
 
@@ -552,7 +674,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setCurrentUser(shopkeeperProfile);
+    localStorage.setItem('rawla_current_user', JSON.stringify(shopkeeperProfile));
     localStorage.setItem('rawla_role_selected', 'shopkeeper');
+    localStorage.setItem('rawla_gateway_passed', 'true');
     setIsGatewayOpen(false);
     setActiveTab('shop_dashboard');
     setSelectedShop(matchingShop);
@@ -592,7 +716,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setCurrentUser(adminProfile);
+    localStorage.setItem('rawla_current_user', JSON.stringify(adminProfile));
     localStorage.setItem('rawla_role_selected', 'admin');
+    localStorage.setItem('rawla_gateway_passed', 'true');
     setIsGatewayOpen(false);
     setActiveTab('admin');
 
@@ -621,6 +747,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(null);
     localStorage.removeItem('rawla_current_user');
     localStorage.removeItem('rawla_role_selected');
+    localStorage.removeItem('rawla_gateway_passed');
     fbSignOut(auth).catch(() => {});
     setIsGatewayOpen(true);
     setActiveTab('home');
@@ -653,19 +780,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setNotifications(prev => [newNotif, ...prev]);
 
-    // Update current user to shopkeeper
-    if (currentUser) {
-      const updatedUser: UserProfile = {
-        ...currentUser,
-        role: 'shopkeeper',
-        shopId: newId
-      };
-      setCurrentUser(updatedUser);
-    }
+    // Update and permanently save current user to shopkeeper
+    const updatedUser: UserProfile = {
+      uid: newShop.ownerUid || 'user-' + newId,
+      phoneNumber: newShop.mobileNumber,
+      email: newShop.email,
+      role: 'shopkeeper',
+      name: newShop.ownerName,
+      shopId: newId,
+      savedShopIds: [],
+      savedProductIds: [],
+      savedPostIds: [],
+      createdAt: new Date().toISOString()
+    };
+    setCurrentUser(updatedUser);
+    localStorage.setItem('rawla_current_user', JSON.stringify(updatedUser));
+    localStorage.setItem('rawla_role_selected', 'shopkeeper');
+    localStorage.setItem('rawla_gateway_passed', 'true');
+    setIsGatewayOpen(false);
+    setActiveTab('shop_dashboard');
 
-    // Try Firestore
+    // Save to Firestore permanently
     try {
       await setDoc(doc(db, 'shops', newId), cleanForFirestore(newShop));
+      await setDoc(doc(db, 'users', updatedUser.uid), cleanForFirestore(updatedUser), { merge: true });
     } catch (err) {
       console.warn('Saved shop locally (Firestore notice):', err);
     }
@@ -909,7 +1047,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  const sendAdminNotification = async (title: string, message: string, target: 'all' | 'shopkeeper' | 'customer' = 'all') => {
+  const sendAdminNotification = async (title: string, message: string, target: 'all' | 'shopkeeper' | 'customer' | 'admin' = 'all') => {
     const newNotif: AppNotification = {
       id: 'notif-' + Date.now(),
       targetUid: target,
@@ -939,6 +1077,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.warn('Saved settings locally:', err);
     }
+  };
+
+  // Super Admin Button Manager Methods
+  const toggleButtonVisibility = async (buttonKey: string) => {
+    const currentHidden = systemSettings.hiddenButtonKeys || [];
+    const isHidden = currentHidden.includes(buttonKey);
+    const updatedHidden = isHidden
+      ? currentHidden.filter(k => k !== buttonKey)
+      : [...currentHidden, buttonKey];
+    await updateSystemSettings({ hiddenButtonKeys: updatedHidden });
+  };
+
+  const addCustomButton = async (btnData: Omit<SiteCustomButton, 'id'>) => {
+    const newBtn: SiteCustomButton = {
+      ...btnData,
+      id: 'btn-' + Date.now()
+    };
+    const currentButtons = systemSettings.customButtons || [];
+    await updateSystemSettings({ customButtons: [...currentButtons, newBtn] });
+  };
+
+  const updateCustomButton = async (id: string, data: Partial<SiteCustomButton>) => {
+    const currentButtons = systemSettings.customButtons || [];
+    const updated = currentButtons.map(b => b.id === id ? { ...b, ...data } : b);
+    await updateSystemSettings({ customButtons: updated });
+  };
+
+  const deleteCustomButton = async (id: string) => {
+    const currentButtons = systemSettings.customButtons || [];
+    const updated = currentButtons.filter(b => b.id !== id);
+    await updateSystemSettings({ customButtons: updated });
+  };
+
+  // Feedback to Superadmin
+  const submitFeedback = async (feedbackData: Omit<UserFeedback, 'id' | 'createdAt' | 'status'>) => {
+    const newId = 'fb-' + Date.now();
+    const newFeedback: UserFeedback = {
+      ...feedbackData,
+      id: newId,
+      status: 'new',
+      createdAt: new Date().toISOString()
+    };
+
+    setFeedbacks(prev => [newFeedback, ...prev]);
+
+    try {
+      await setDoc(doc(db, 'feedbacks', newId), cleanForFirestore(newFeedback));
+      console.log('✅ Feedback synced to Firestore:', newId);
+    } catch (err) {
+      console.warn('Feedback saved locally:', err);
+    }
+
+    // Send admin notification
+    try {
+      await sendAdminNotification(
+        `नई राय / फीडबैक प्राप्त हुआ`,
+        `${feedbackData.name} (${feedbackData.role === 'shopkeeper' ? 'दुकानदार' : 'ग्राहक'}): "${feedbackData.message.slice(0, 60)}..."`,
+        'admin'
+      );
+    } catch (e) {}
+  };
+
+  const deleteFeedback = async (id: string) => {
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
+    try {
+      await deleteDoc(doc(db, 'feedbacks', id));
+    } catch (err) {
+      console.warn('Deleted feedback locally:', err);
+    }
+  };
+
+  const markFeedbackReviewed = async (id: string) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'reviewed' as const } : f));
+    try {
+      await updateDoc(doc(db, 'feedbacks', id), { status: 'reviewed' });
+    } catch (err) {}
   };
 
   const userRole: UserRole = currentUser?.role || 'customer';
@@ -1010,7 +1224,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedFieldForEdit,
         setSelectedFieldForEdit,
         customizerCategory,
-        openCustomizerForField
+        openCustomizerForField,
+        toggleButtonVisibility,
+        addCustomButton,
+        updateCustomButton,
+        deleteCustomButton,
+        feedbacks,
+        submitFeedback,
+        deleteFeedback,
+        markFeedbackReviewed,
+        themeMode,
+        toggleThemeMode
       }}
     >
       {children}

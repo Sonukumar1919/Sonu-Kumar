@@ -53,17 +53,9 @@ export const RoleGatewayPage: React.FC = () => {
   const [adminLoading, setAdminLoading] = useState(false);
   const [showAdminPass, setShowAdminPass] = useState(false);
 
-  // Auto theme rotation preview timer (subtle, non-intrusive)
-  useEffect(() => {
-    const themes: ('golden' | 'indigo' | 'emerald' | 'neon')[] = ['golden', 'indigo', 'emerald', 'neon'];
-    const timer = setInterval(() => {
-      setActiveTheme(prev => {
-        const nextIdx = (themes.indexOf(prev) + 1) % themes.length;
-        return themes[nextIdx];
-      });
-    }, 12000); // changes ambient theme every 12s
-    return () => clearInterval(timer);
-  }, []);
+  // Imperceptible continuous theme morphing is powered by animate-login-slow-morph in CSS
+  // which shifts colors smoothly over 60s without anyone noticing sudden jumps.
+  // Manual theme switcher remains available for instant styling preference.
 
   const handleShopkeeperLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,12 +133,13 @@ export const RoleGatewayPage: React.FC = () => {
   const theme = themeStyles[activeTheme];
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} text-white flex flex-col justify-between relative overflow-hidden transition-all duration-1000 select-none`}>
+    <div className="min-h-screen animate-login-slow-morph text-white flex flex-col justify-between relative overflow-hidden select-none">
       
-      {/* Background Animated Glowing Lights */}
-      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b ${theme.accentGlow} blur-3xl rounded-full pointer-events-none transition-all duration-1000`}></div>
-      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-500/10 blur-3xl rounded-full pointer-events-none"></div>
-      <div className="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none"></div>
+      {/* Background Imperceptible Slow-Morphing Glowing Ambient Lights */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-amber-500/25 via-rose-500/20 to-transparent blur-3xl rounded-full pointer-events-none animate-orb-drift"></div>
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-emerald-500/25 blur-3xl rounded-full pointer-events-none animate-orb-drift" style={{ animationDelay: '-8s' }}></div>
+      <div className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/25 blur-3xl rounded-full pointer-events-none animate-orb-drift" style={{ animationDelay: '-16s' }}></div>
+      <div className="absolute top-1/2 right-10 w-72 h-72 bg-purple-500/20 blur-3xl rounded-full pointer-events-none animate-orb-drift" style={{ animationDelay: '-24s' }}></div>
 
       {/* Floating Local Market Emojis Background */}
       <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden flex justify-around items-center text-4xl sm:text-6xl space-x-4">
@@ -355,15 +348,15 @@ export const RoleGatewayPage: React.FC = () => {
               <form onSubmit={handleShopkeeperLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-                    दुकान की Gmail / ईमेल (Shop Email) *
+                    दुकान की Gmail या मोबाइल नंबर (Email or Mobile) *
                   </label>
                   <div className="relative flex items-center">
                     <Mail size={16} className="absolute left-3.5 text-slate-400" />
                     <input
-                      type="email"
+                      type="text"
                       value={shopEmail}
                       onChange={(e) => setShopEmail(e.target.value)}
-                      placeholder="sharma@rawlamandi.com"
+                      placeholder="पंजीकृत Gmail या 10 अंकों का मोबाइल"
                       required
                       className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                     />

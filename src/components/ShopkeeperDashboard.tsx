@@ -22,7 +22,10 @@ import {
   X,
   Sparkles,
   RefreshCw,
-  Key
+  Key,
+  MessageSquare,
+  Sun,
+  Moon
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
@@ -30,6 +33,7 @@ import { Shop, Product, ShopPost } from '../types';
 import { SHOP_CATEGORIES } from '../data/constants';
 import { ImageUploadField } from './ImageUploadField';
 import { compressAndReadImageFile } from '../utils/imageUtils';
+import { UserFeedbackModal } from './UserFeedbackModal';
 
 interface ShopkeeperDashboardProps {
   onSelectShop: (shop: Shop) => void;
@@ -48,7 +52,9 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
     createPost, 
     updatePost, 
     deletePost,
-    updateShop 
+    updateShop,
+    themeMode,
+    toggleThemeMode 
   } = useApp();
 
   // Find shop of current user
@@ -63,6 +69,7 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
   const [activeTab, setActiveTab] = useState<'products' | 'posts' | 'settings'>('products');
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Product form state
   const [prodName, setProdName] = useState('');
@@ -267,7 +274,35 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 self-start md:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {/* Dark / Light Theme Toggle */}
+          <button
+            onClick={toggleThemeMode}
+            className="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2.5 rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs"
+            title={themeMode === 'dark' ? 'लाइट थीम चालू करें' : 'डार्क थीम चालू करें'}
+          >
+            {themeMode === 'dark' ? (
+              <>
+                <Sun size={15} className="text-amber-400" />
+                <span>Light Theme</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-indigo-600" />
+                <span>Dark Theme</span>
+              </>
+            )}
+          </button>
+
+          {/* Feedback to Superadmin */}
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="flex items-center space-x-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800 px-3 py-2.5 rounded-xl transition cursor-pointer shadow-2xs"
+          >
+            <MessageSquare size={14} className="text-amber-600 dark:text-amber-400" />
+            <span>सुपरएडमिन को राय दें</span>
+          </button>
+
           <button
             onClick={() => onSelectShop(userShop)}
             className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
@@ -983,6 +1018,13 @@ export const ShopkeeperDashboard: React.FC<ShopkeeperDashboardProps> = ({ onSele
           </div>
         </div>
       )}
+
+      {/* Feedback to Superadmin Modal */}
+      <UserFeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        defaultRole="shopkeeper"
+      />
 
     </div>
   );

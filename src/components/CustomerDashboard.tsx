@@ -11,10 +11,14 @@ import {
   MapPin, 
   ShieldCheck,
   ChevronRight,
-  Clock
+  Clock,
+  Sun,
+  Moon,
+  MessageSquare
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Shop, Product, ShopPost } from '../types';
+import { UserFeedbackModal } from './UserFeedbackModal';
 
 interface CustomerDashboardProps {
   onSelectShop: (shop: Shop) => void;
@@ -34,10 +38,13 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     toggleSaveShop,
     toggleSaveProduct,
     toggleSavePost,
-    setActiveTab 
+    setActiveTab,
+    themeMode,
+    toggleThemeMode 
   } = useApp();
 
   const [activeTab, setActiveDashboardTab] = useState<'saved_shops' | 'saved_products' | 'saved_posts'>('saved_shops');
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   if (!currentUser) return null;
 
@@ -49,27 +56,55 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Profile Card Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-extrabold text-2xl shadow-md shadow-amber-500/20">
             {currentUser.name.charAt(0)}
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-display">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display">
                 {currentUser.name}
               </h1>
-              <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-md">
+              <span className="bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-bold px-2 py-0.5 rounded-md">
                 सत्यापित ग्राहक (Customer)
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               मोबाइल: +91 {currentUser.phoneNumber} {currentUser.email && `• ${currentUser.email}`}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Dark / Light Theme Toggle */}
+          <button
+            onClick={toggleThemeMode}
+            className="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2 rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs"
+            title={themeMode === 'dark' ? 'लाइट थीम चालू करें' : 'डार्क थीम चालू करें'}
+          >
+            {themeMode === 'dark' ? (
+              <>
+                <Sun size={15} className="text-amber-400" />
+                <span>Light Theme</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-indigo-600" />
+                <span>Dark Theme</span>
+              </>
+            )}
+          </button>
+
+          {/* Feedback to Superadmin */}
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="flex items-center space-x-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800 px-3.5 py-2 rounded-xl transition cursor-pointer shadow-2xs"
+          >
+            <MessageSquare size={14} className="text-amber-600 dark:text-amber-400" />
+            <span>अपनी राय दें</span>
+          </button>
+
           <button
             onClick={onOpenRegisterShop}
             className="text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-xl transition cursor-pointer"

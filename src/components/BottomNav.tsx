@@ -18,7 +18,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenAuth }) => {
   const isUserTab = activeTab === 'user_portal' || activeTab === 'customer_dashboard' || activeTab === 'shop_dashboard' || activeTab === 'admin';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl py-1.5 px-2 sm:px-6">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-2xl py-1.5 px-2 sm:px-6 transition-colors">
       <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
         
         {/* 1. Home Button (होम - पोस्ट्स व प्रोडक्ट्स) */}

@@ -54,3 +54,80 @@
   background-size: 300% 300%;
   animation: themeGradientShift 10s ease infinite;
 }
+
+/* Imperceptible ultra-slow smooth login theme morphing */
+@keyframes imperceptibleThemeShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  20% {
+    background-position: 50% 100%;
+  }
+  40% {
+    background-position: 100% 50%;
+  }
+  60% {
+    background-position: 80% 0%;
+  }
+  80% {
+    background-position: 20% 80%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes orbSlowPulse {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.28;
+  }
+  33% {
+    transform: scale(1.12) translate(30px, -20px);
+    opacity: 0.38;
+  }
+  66% {
+    transform: scale(0.92) translate(-25px, 25px);
+    opacity: 0.25;
+  }
+}
+
+.animate-login-slow-morph {
+  background: linear-gradient(135deg, 
+    #090d16 0%, 
+    #1c1917 15%, 
+    #1e1b4b 30%, 
+    #064e3b 45%, 
+    #172554 60%, 
+    #3b0764 75%, 
+    #451a03 90%, 
+    #090d16 100%
+  );
+  background-size: 600% 600%;
+  animation: imperceptibleThemeShift 60s ease-in-out infinite;
+}
+
+.animate-orb-drift {
+  animation: orbSlowPulse 24s ease-in-out infinite alternate;
+}
+
+/* Customer side high-contrast crystal-clear theme backdrop (No text blending) */
+.bg-colorful-mesh {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 40%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.06) 0px, transparent 40%),
+    radial-gradient(at 0% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 40%);
+  background-attachment: fixed;
+}
+
+.dark .bg-colorful-mesh {
+  background-color: #0b0f19;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.10) 0px, transparent 40%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.10) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 40%),
+    radial-gradient(at 0% 100%, rgba(244, 63, 94, 0.08) 0px, transparent 40%);
+  background-attachment: fixed;
+}

@@ -91,6 +91,17 @@ export interface AppNotification {
   createdAt: string;
 }
 
+export interface SiteCustomButton {
+  id: string;
+  label: string;
+  actionType: 'url' | 'whatsapp' | 'call' | 'tab' | 'custom';
+  target: string; // url, phone number, or tab name
+  position: 'header' | 'feed' | 'floating' | 'footer';
+  icon?: string;
+  color?: 'amber' | 'emerald' | 'blue' | 'rose' | 'purple' | 'slate';
+  enabled: boolean;
+}
+
 export interface SystemSettings {
   postApprovalRequired: boolean;
   bannerNotice: string;
@@ -147,4 +158,20 @@ export interface SystemSettings {
   boxSizeScale?: 'compact' | 'normal' | 'spacious' | 'large';
   cardBorderRadius?: 'rounded-xl' | 'rounded-2xl' | 'rounded-3xl' | 'rounded-none';
   themePrimaryColor?: 'amber' | 'emerald' | 'indigo' | 'rose' | 'purple';
+  // Super Admin Button Manager: Add, Hide, Edit & Delete buttons
+  customButtons?: SiteCustomButton[];
+  hiddenButtonKeys?: string[];
 }
+
+export interface UserFeedback {
+  id: string;
+  name: string;
+  phoneNumber?: string;
+  role: 'customer' | 'shopkeeper';
+  shopName?: string;
+  message: string;
+  rating?: number;
+  status: 'new' | 'reviewed';
+  createdAt: string;
+}
+

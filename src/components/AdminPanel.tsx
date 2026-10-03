@@ -27,7 +27,9 @@ import {
   KeyRound,
   Lock,
   Mail,
-  Edit3
+  Edit3,
+  MessageSquare,
+  Star
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
@@ -58,11 +60,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
     setIsCustomizerOpen,
     setInlineEditMode,
     inlineEditMode,
-    sendAdminNotification
+    sendAdminNotification,
+    feedbacks,
+    deleteFeedback,
+    markFeedbackReviewed
   } = useApp();
 
   const [activeMenu, setActiveMenu] = useState<
-    'dashboard' | 'shop_requests' | 'active_shops' | 'blocked_shops' | 'users' | 'products' | 'posts' | 'categories' | 'reports' | 'settings' | 'security' | 'notifications_send'
+    'dashboard' | 'shop_requests' | 'active_shops' | 'blocked_shops' | 'users' | 'products' | 'posts' | 'categories' | 'reports' | 'settings' | 'security' | 'notifications_send' | 'feedbacks'
   >('dashboard');
 
   const [selectedShopModal, setSelectedShopModal] = useState<Shop | null>(null);
@@ -217,6 +222,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
                 activeMenu === 'shop_requests' ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-900'
               }`}>
                 {pendingShops.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveMenu('feedbacks')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              activeMenu === 'feedbacks' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            <span className="flex items-center"><MessageSquare size={16} className="mr-2 text-rose-500" /> राय व फीडबैक (Feedbacks)</span>
+            {feedbacks.filter(f => f.status === 'new').length > 0 && (
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                activeMenu === 'feedbacks' ? 'bg-white text-rose-700' : 'bg-rose-100 text-rose-900 animate-pulse'
+              }`}>
+                {feedbacks.filter(f => f.status === 'new').length} New
               </span>
             )}
           </button>
@@ -898,6 +919,150 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectShop }) => {
                 <div>• केवल <strong>{ADMIN_CREDENTIALS.email}</strong> ही इस पासवर्ड का उपयोग करके सुपर एडमिन के रूप में प्रवेश कर सकते हैं।</div>
                 <div>• एडमिन के पास live website customizer, दुकान स्वीकृति/ब्लॉक तथा सभी कैटलॉग सामग्री नियंत्रित करने का पूर्ण अधिकार है।</div>
               </div>
+            </div>
+          )}
+
+          {/* TAB: LIVE CUSTOMER & SHOPKEEPER FEEDBACKS */}
+          {activeMenu === 'feedbacks' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
+                <div>
+                  <h3 className="font-black text-slate-900 text-lg flex items-center space-x-2">
+                    <MessageSquare size={20} className="text-rose-500" />
+                    <span>ग्राहकों व दुकानदारों की राय व फीडबैक ({feedbacks.length})</span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    उपयोगकर्ताओं द्वारा सुपरएडमिन को सीधे भेजे गए सुझाव, शिकायतें व अनुभव रियल-टाइम में यहाँ दिखते हैं।
+                  </p>
+                </div>
+              </div>
+
+              {feedbacks.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 space-y-3">
+                  <MessageSquare size={44} className="text-slate-300 mx-auto" />
+                  <h4 className="font-bold text-slate-800 text-base">अभी कोई फीडबैक प्राप्त नहीं हुआ है</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    जैसे ही कोई ग्राहक या दुकानदार "अपनी राय दें" पर क्लिक करके सुझाव भेजेगा, वह तुरंत यहाँ लाइव दिखाई देगा।
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {feedbacks.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all ${
+                        item.status === 'new'
+                          ? 'bg-amber-50/60 border-amber-300 shadow-xs'
+                          : 'bg-white border-slate-200 opacity-90'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/60">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white text-base shadow-sm ${
+                            item.role === 'shopkeeper' ? 'bg-emerald-600' : 'bg-amber-600'
+                          }`}>
+                            {item.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-extrabold text-slate-900 text-sm">{item.name}</h4>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                                item.role === 'shopkeeper'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+                              }`}>
+                                {item.role === 'shopkeeper' ? 'दुकानदार' : 'ग्राहक'}
+                              </span>
+                              {item.status === 'new' && (
+                                <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                                  NEW
+                                </span>
+                              )}
+                            </div>
+                            {item.shopName && (
+                              <p className="text-[11px] font-bold text-emerald-700">
+                                दुकान: {item.shopName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Rating stars & date */}
+                        <div className="flex items-center space-x-3">
+                          {item.rating && (
+                            <div className="flex items-center text-amber-500 text-xs font-bold bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                              <Star size={13} className="fill-amber-400 mr-1" />
+                              <span>{item.rating} / 5</span>
+                            </div>
+                          )}
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            {new Date(item.createdAt).toLocaleDateString('hi-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Message Content */}
+                      <div className="py-3 text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-white/70 p-3 rounded-2xl border border-slate-200/50 mt-2">
+                        {item.message}
+                      </div>
+
+                      {/* Action buttons: Call, WhatsApp, Mark Reviewed, Delete */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-1">
+                        <div className="flex items-center space-x-2">
+                          {item.phoneNumber && (
+                            <>
+                              <a
+                                href={`tel:${item.phoneNumber}`}
+                                className="flex items-center space-x-1 bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold transition"
+                              >
+                                <Phone size={12} className="text-blue-600" />
+                                <span>कॉल करें ({item.phoneNumber})</span>
+                              </a>
+                              <a
+                                href={`https://wa.me/91${item.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(`नमस्ते ${item.name}! आपकी राय / फीडबैक के संबंध में सुपरएडमिन से संदेश।`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs"
+                              >
+                                <MessageCircle size={12} />
+                                <span>WhatsApp उत्तर</span>
+                              </a>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          {item.status === 'new' && (
+                            <button
+                              onClick={() => markFeedbackReviewed(item.id)}
+                              className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold transition cursor-pointer"
+                            >
+                              समीक्षा चिह्नित करें (Reviewed)
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (confirm('क्या आप यह फीडबैक हटाना चाहते हैं?')) {
+                                deleteFeedback(item.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-xl text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            title="डिलीट करें"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
