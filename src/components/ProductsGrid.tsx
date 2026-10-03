@@ -44,43 +44,45 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
 
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
 
-  // Filter products
-  const filteredProducts = products.filter(product => {
-    // Hide product only if shop is explicitly blocked or rejected
-    const shop = shops.find(s => s.id === product.shopId);
-    if (shop && (shop.status === 'blocked' || shop.status === 'rejected')) {
-      return false;
-    }
-
-    if (filterShopId && product.shopId !== filterShopId) {
-      return false;
-    }
-
-    if (selectedCategory !== 'all' && product.category !== selectedCategory) {
-      return false;
-    }
-
-    // Filter by product condition (new / used / rent)
-    if (selectedCondition !== 'all') {
-      const prodCond = product.condition || 'new';
-      if (prodCond !== selectedCondition) {
+  // Filter products & sort newest first
+  const filteredProducts = products
+    .filter(product => {
+      // Hide product only if shop is explicitly blocked or rejected
+      const shop = shops.find(s => s.id === product.shopId);
+      if (shop && (shop.status === 'blocked' || shop.status === 'rejected')) {
         return false;
       }
-    }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchName = product.name.toLowerCase().includes(q);
-      const matchDesc = product.description.toLowerCase().includes(q);
-      const matchShop = product.shopName.toLowerCase().includes(q);
-      const matchCat = product.category.toLowerCase().includes(q);
-      if (!matchName && !matchDesc && !matchShop && !matchCat) {
+      if (filterShopId && product.shopId !== filterShopId) {
         return false;
       }
-    }
 
-    return true;
-  });
+      if (selectedCategory !== 'all' && product.category !== selectedCategory) {
+        return false;
+      }
+
+      // Filter by product condition (new / used / rent)
+      if (selectedCondition !== 'all') {
+        const prodCond = product.condition || 'new';
+        if (prodCond !== selectedCondition) {
+          return false;
+        }
+      }
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchName = product.name.toLowerCase().includes(q);
+        const matchDesc = product.description.toLowerCase().includes(q);
+        const matchShop = product.shopName.toLowerCase().includes(q);
+        const matchCat = product.category.toLowerCase().includes(q);
+        if (!matchName && !matchDesc && !matchShop && !matchCat) {
+          return false;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
   const handleSave = (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();

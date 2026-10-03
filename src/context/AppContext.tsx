@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { signInWithPopup, signOut as fbSignOut, signInAnonymously } from 'firebase/auth';
 import { db, auth, googleProvider, handleFirestoreError, OperationType } from '../lib/firebase';
+import { cleanForFirestore } from '../utils/firestoreUtils';
 import { 
   UserProfile, 
   Shop, 
@@ -278,22 +279,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const prodCol = collection(db, 'products');
         unsubscribeProducts = onSnapshot(prodCol, async (snapshot) => {
           if (snapshot.empty) {
+            // First time seeding defaults to Firestore
             for (const p of DEFAULT_PRODUCTS) {
-              try { await setDoc(doc(db, 'products', p.id), p); } catch (e) {}
+              try { 
+                await setDoc(doc(db, 'products', p.id), cleanForFirestore(p)); 
+              } catch (e) {}
             }
+            setProducts(DEFAULT_PRODUCTS);
           } else {
             const list: Product[] = [];
-            snapshot.forEach((d) => list.push({ ...(d.data() as Product), id: d.id }));
-            setProducts(() => {
-              const map = new Map<string, Product>();
-              // Baseline fallback default products
-              DEFAULT_PRODUCTS.forEach(p => map.set(p.id, p));
-              // Real-time Firestore products (overrides defaults and adds new shopkeeper products)
-              list.forEach(p => map.set(p.id, p));
-              return Array.from(map.values()).sort((a, b) => 
-                new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-              );
+            snapshot.forEach((d) => {
+              const data = d.data() as Product;
+              list.push({ ...data, id: d.id });
             });
+            // Strictly sort by newest first (newest product right at the top)
+            list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+            setProducts(list);
+            localStorage.setItem('rawla_products', JSON.stringify(list));
           }
         }, (error) => {
           console.warn('Firestore products stream notice:', error.message);
@@ -663,7 +665,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Try Firestore
     try {
-      await setDoc(doc(db, 'shops', newId), newShop);
+      await setDoc(doc(db, 'shops', newId), cleanForFirestore(newShop));
     } catch (err) {
       console.warn('Saved shop locally (Firestore notice):', err);
     }
@@ -677,7 +679,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSelectedShop(prev => prev ? { ...prev, ...data } : null);
     }
     try {
-      await updateDoc(doc(db, 'shops', shopId), data);
+      await updateDoc(doc(db, 'shops', shopId), cleanForFirestore(data));
     } catch (err) {
       console.warn('Updated shop locally:', err);
     }
@@ -765,21 +767,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'active',
       createdAt: new Date().toISOString()
     };
+    
+    // Immediate optimistic local update
     setProducts(prev => [newProduct, ...prev]);
 
+    // Save to Firestore with clean undefined-stripping
     try {
-      await setDoc(doc(db, 'products', newId), newProduct);
+      await setDoc(doc(db, 'products', newId), cleanForFirestore(newProduct));
+      console.log('✅ Real-time: Product successfully added to Firestore:', newId);
     } catch (err) {
-      console.warn('Added product locally:', err);
+      console.error('Firestore addProduct error:', err);
     }
   };
 
   const updateProduct = async (productId: string, data: Partial<Product>) => {
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...data } : p));
     try {
-      await updateDoc(doc(db, 'products', productId), data);
+      await updateDoc(doc(db, 'products', productId), cleanForFirestore(data));
+      console.log('✅ Real-time: Product successfully updated in Firestore:', productId);
     } catch (err) {
-      console.warn('Updated product locally:', err);
+      console.error('Firestore updateProduct error:', err);
     }
   };
 
@@ -787,8 +794,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(prev => prev.filter(p => p.id !== productId));
     try {
       await deleteDoc(doc(db, 'products', productId));
+      console.log('✅ Real-time: Product successfully deleted from Firestore:', productId);
     } catch (err) {
-      console.warn('Deleted product locally:', err);
+      console.error('Firestore deleteProduct error:', err);
     }
   };
 

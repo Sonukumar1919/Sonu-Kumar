@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Phone, 
@@ -56,6 +56,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   }
 
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+
+  useEffect(() => {
+    setIsImageLoaded(false);
+    setShowLoader(false);
+    // If loading takes > 0.5 sec (500ms), show creative loader
+    const timer = setTimeout(() => {
+      setShowLoader(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [activePhotoIndex, product.id]);
 
   const discountPercent = product.discountPrice 
     ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
@@ -143,11 +156,30 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           
           {/* Main Photo Gallery */}
           <div className="space-y-3">
-            <div className="relative h-64 sm:h-80 w-full rounded-2xl bg-slate-950 overflow-hidden group shadow-md">
+            <div className="relative h-64 sm:h-80 w-full rounded-2xl bg-slate-950 overflow-hidden group shadow-md flex items-center justify-center">
+              {/* Creative Loading Overlay (shown only if loading takes > 0.5s) */}
+              {!isImageLoaded && showLoader && (
+                <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-30 flex flex-col items-center justify-center space-y-3 animate-in fade-in duration-300">
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-400 animate-spin"></div>
+                    <Sparkles size={18} className="absolute text-amber-400 animate-pulse" />
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="text-amber-300 text-sm font-black font-hindi tracking-wider animate-pulse">
+                      रुकजा ठंड राख
+                    </p>
+                    <p className="text-slate-400 text-[11px] font-medium">
+                      प्रोडक्ट लोड हो रहा है...
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <img
                 src={allPhotos[activePhotoIndex]}
                 alt={`${product.name} - Photo ${activePhotoIndex + 1}`}
-                className="w-full h-full object-contain"
+                className={`w-full h-full object-contain transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setIsImageLoaded(true)}
               />
 
               {/* Counter Badge */}
